@@ -28,9 +28,9 @@ public class PlayTrackActivity extends Activity
 	private SpotifyService spotify;
 
 	private String REDIRECT_URI = "http://example.com/callback/";
-	private long currentTime = 0;
 	private boolean isPlaying = false;
 
+	private long elapsed = 0;
 	private Track currentTrack = null;
 
 	private ConnectionParams connectionParams;
@@ -40,7 +40,6 @@ public class PlayTrackActivity extends Activity
 	private Button btnPlay;
 	private SeekBar playerProgress;
 
-	private Handler updateSeekbarHandler;
 	private Runnable updateSeekbarRunnable;
 
 	@Override
@@ -55,6 +54,8 @@ public class PlayTrackActivity extends Activity
 		playerProgress = findViewById(R.id.playerProgress);
 		trackImageView = findViewById(R.id.trackImage);
 		btnPlay = findViewById(R.id.btnPlay);
+
+		initRunnable();
 
 		String title = getIntent().getStringExtra("title");
 		String artists = getIntent().getStringExtra("artists");
@@ -102,6 +103,7 @@ public class PlayTrackActivity extends Activity
 				isPlaying = !isPlaying;
 
 				playerProgress.setMax((int) trackSec);
+				playerProgress.post(updateSeekbarRunnable);
 			}
 
 			@Override
@@ -123,13 +125,31 @@ public class PlayTrackActivity extends Activity
 					spotifyAppRemote.getPlayerApi().pause();
 					isPlaying = !isPlaying;
 					btnPlay.setBackgroundResource(R.drawable.round_button_play);
+					playerProgress.removeCallbacks(updateSeekbarRunnable);
 				} else
 				{
 					spotifyAppRemote.getPlayerApi().resume();
 					isPlaying = !isPlaying;
 					btnPlay.setBackgroundResource(R.drawable.round_button_pause);
+					playerProgress.post(updateSeekbarRunnable);
 				}
 			}
 		}
 	}
+
+	private void initRunnable(){
+		updateSeekbarRunnable = new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				if (currentTrack != null) {
+					playerProgress.setProgress((int) elapsed);
+					elapsed += 1;
+					playerProgress.postDelayed(this, 1000);
+				}
+			}
+		};
+	}
+
 }

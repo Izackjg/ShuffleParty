@@ -6,7 +6,7 @@
 
     <Button
         android:id="@+id/btnSpotifyLogin"
-        android:layout_width="150dp"
+        android:layout_width="190dp"
         android:layout_height="45dp"
         android:onClick="btnSpotifyLogin_onClick"
         android:layout_centerInParent="true"
