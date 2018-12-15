@@ -8,11 +8,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
+import com.spotify.protocol.client.Subscription;
+import com.spotify.protocol.types.PlayerState;
 import com.squareup.picasso.Picasso;
 
 import kaaes.spotify.webapi.android.SpotifyCallback;
@@ -25,20 +28,22 @@ import retrofit.client.Response;
 
 public class PlayTrackActivity extends Activity
 {
-	private SpotifyService spotify;
-
 	private String REDIRECT_URI = "http://example.com/callback/";
-	private boolean isPlaying = false;
 
 	private long elapsed = 0;
 	private Track currentTrack = null;
 
 	private ConnectionParams connectionParams;
 	private SpotifyAppRemote spotifyAppRemote;
+	private SpotifyService spotify;
+	private PlayerState playerState;
 
 	private ImageView trackImageView;
 	private Button btnPlay;
 	private SeekBar playerProgress;
+
+	private TextView tvTrackDuration;
+	private TextView tvTrackElapsed;
 
 	private Runnable updateSeekbarRunnable;
 
@@ -55,6 +60,10 @@ public class PlayTrackActivity extends Activity
 		trackImageView = findViewById(R.id.trackImage);
 		btnPlay = findViewById(R.id.btnPlay);
 
+		tvTrackDuration = findViewById(R.id.tvTrackDuration);
+		tvTrackElapsed = findViewById(R.id.tvTrackElapsed);
+
+		initSeekbar();
 		initRunnable();
 
 		String title = getIntent().getStringExtra("title");
@@ -93,17 +102,18 @@ public class PlayTrackActivity extends Activity
 			{
 				spotifyAppRemote = mSpotifyAppRemote;
 
+				initPlayer();
+
 				long trackSec = currentTrack.duration_ms / 1000;
+				tvTrackDuration.setText(formatTimeDuration((int)trackSec));
+
 				Image trackImage = currentTrack.album.images.get(0);
 				if (trackImage != null)
 				{
 					Picasso.get().load(trackImage.url).into(trackImageView);
 				}
 
-				isPlaying = !isPlaying;
-
 				playerProgress.setMax((int) trackSec);
-				playerProgress.post(updateSeekbarRunnable);
 			}
 
 			@Override
@@ -120,36 +130,94 @@ public class PlayTrackActivity extends Activity
 		{
 			if (currentTrack != null)
 			{
-				if (isPlaying)
-				{
+				if (!playerState.isPaused)
 					spotifyAppRemote.getPlayerApi().pause();
-					isPlaying = !isPlaying;
-					btnPlay.setBackgroundResource(R.drawable.round_button_play);
-					playerProgress.removeCallbacks(updateSeekbarRunnable);
-				} else
-				{
+				else
 					spotifyAppRemote.getPlayerApi().resume();
-					isPlaying = !isPlaying;
-					btnPlay.setBackgroundResource(R.drawable.round_button_pause);
-					playerProgress.post(updateSeekbarRunnable);
-				}
+
 			}
 		}
 	}
 
-	private void initRunnable(){
+	private void initSeekbar()
+	{
+		playerProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+		{
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+			{
+				if (fromUser)
+				{
+					elapsed = progress;
+					seekBar.setProgress((int) elapsed);
+					spotifyAppRemote.getPlayerApi().seekTo(elapsed * 1000);
+				}
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar)
+			{
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar)
+			{
+
+			}
+		});
+	}
+
+	private void initRunnable()
+	{
 		updateSeekbarRunnable = new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				if (currentTrack != null) {
-					playerProgress.setProgress((int) elapsed);
+				if (currentTrack != null)
+				{
 					elapsed += 1;
+					playerProgress.setProgress((int) elapsed);
 					playerProgress.postDelayed(this, 1000);
 				}
 			}
 		};
+	}
+
+	private void initPlayer()
+	{
+		if (spotifyAppRemote != null)
+		{
+			spotifyAppRemote.getPlayerApi().subscribeToPlayerState().setEventCallback(new Subscription.EventCallback<PlayerState>()
+			{
+				@Override
+				public void onEvent(PlayerState mPlayerState)
+				{
+					playerState = mPlayerState;
+
+					if (mPlayerState.playbackPosition == mPlayerState.track.duration)
+						elapsed = 0;
+
+					if (mPlayerState.isPaused)
+					{
+						btnPlay.setBackgroundResource(R.drawable.round_button_play);
+						playerProgress.removeCallbacks(updateSeekbarRunnable);
+					} else
+					{
+						btnPlay.setBackgroundResource(R.drawable.round_button_pause);
+						playerProgress.post(updateSeekbarRunnable);
+					}
+				}
+			});
+		}
+	}
+
+	private String formatTimeDuration(int totalSeconds) {
+		int mins = (totalSeconds % 3600) / 60;
+		int seconds = totalSeconds % 60;
+
+		return String.format("%02d:%02d", mins, seconds);
 	}
 
 }
