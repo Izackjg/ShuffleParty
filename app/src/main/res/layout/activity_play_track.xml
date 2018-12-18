@@ -7,7 +7,27 @@
     <ImageView
         android:id="@+id/trackImage"
         android:layout_width="match_parent"
-        android:layout_height="360dp"/>
+        android:layout_height="330dp"/>
+
+    <TextView
+        android:id="@+id/tvTrackTitle"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:maxLines="1"
+        android:textSize="22sp"
+        android:gravity="center"
+        android:layout_below="@id/trackImage"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:id="@+id/tvTrackArtists"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:textSize="16sp"
+        android:layout_below="@id/tvTrackTitle"
+        android:gravity="center"
+        android:layout_centerHorizontal="true"/>
 
     <RelativeLayout
         android:id="@+id/layoutPlayer"
@@ -24,7 +44,6 @@
             android:layout_below="@id/search_results"
             android:layout_centerHorizontal="true"
             android:layout_gravity="center"
-            android:layout_marginBottom="5dp"
             android:background="@drawable/round_button_pause"
             android:onClick="btnPlay_onClick"/>
 

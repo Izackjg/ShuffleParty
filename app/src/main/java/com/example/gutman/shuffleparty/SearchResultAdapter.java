@@ -3,6 +3,7 @@ package com.example.gutman.shuffleparty;
 import android.content.Context;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,22 +26,14 @@ class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.Vie
 {
 	public interface TrackItemSelectedListener
 	{
-		void onItemSelected(View itemView, Track track);
+		void onItemSelected(View itemView, Track track, int position);
 	}
 
-	public interface AlbumSelectedListener
-	{
-		void onItemSelected(View itemView, Album album);
-	}
-
-	public interface PlaylistSelectedListener
-	{
-		void onItemSelected(View itemView, Playlist playlist);
-	}
 
 	private final List<Track> items = new ArrayList<>();
 	private final Context context;
 	private final TrackItemSelectedListener trackListener;
+	private int index;
 
 	public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
 	{
@@ -63,7 +56,7 @@ class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.Vie
 		public void onClick(View v)
 		{
 			notifyItemChanged(getLayoutPosition());
-			trackListener.onItemSelected(v, items.get(getAdapterPosition()));
+			trackListener.onItemSelected(v, items.get(getAdapterPosition()), getLayoutPosition());
 		}
 	}
 
@@ -96,14 +89,14 @@ class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.Vie
 	{
 		Track item = items.get(position);
 
-		holder.title.setText(item.name);
+		holder.title.setText(SpotifyUtils.formatUnwantedCharsFromTitle(item.name, "("));
 
 		if (item.explicit)
 			holder.explicity.setText("EXPLICIT");
 		else
 			holder.explicity.setVisibility(View.GONE);
 
-		holder.artist.setText(SpotifyUtils.toStringFromArtists(item));
+		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + " • " + item.album.name);
 
 		Image image = item.album.images.get(0);
 		if (image != null)
@@ -116,5 +109,10 @@ class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.Vie
 	public int getItemCount()
 	{
 		return items.size();
+	}
+
+	public int getIndex()
+	{
+		return index;
 	}
 }

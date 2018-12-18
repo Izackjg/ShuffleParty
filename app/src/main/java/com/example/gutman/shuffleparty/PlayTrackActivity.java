@@ -3,7 +3,6 @@ package com.example.gutman.shuffleparty;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -17,6 +16,8 @@ import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.client.Subscription;
 import com.spotify.protocol.types.PlayerState;
 import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
@@ -34,10 +35,12 @@ public class PlayTrackActivity extends Activity
 	private Track currentTrack = null;
 
 	private ConnectionParams connectionParams;
-	private SpotifyAppRemote spotifyAppRemote;
 	private SpotifyService spotify;
+	private SpotifyAppRemote spotifyAppRemote;
 	private PlayerState playerState;
 
+	private TextView tvTrackTitle;
+	private TextView tvTrackArtists;
 	private ImageView trackImageView;
 	private Button btnPlay;
 	private SeekBar playerProgress;
@@ -45,6 +48,7 @@ public class PlayTrackActivity extends Activity
 	private TextView tvTrackDuration;
 	private TextView tvTrackElapsed;
 
+	private Handler updateSeekbarHandler;
 	private Runnable updateSeekbarRunnable;
 
 	@Override
@@ -53,6 +57,8 @@ public class PlayTrackActivity extends Activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_play_track);
 
+		updateSeekbarHandler = new Handler();
+
 		String apiToken = CredentialsHandler.getToken(this);
 		spotify = SpotifyUtils.getInstance(apiToken);
 
@@ -60,36 +66,27 @@ public class PlayTrackActivity extends Activity
 		trackImageView = findViewById(R.id.trackImage);
 		btnPlay = findViewById(R.id.btnPlay);
 
+		tvTrackArtists = findViewById(R.id.tvTrackArtists);
+		tvTrackTitle = findViewById(R.id.tvTrackTitle);
+
 		tvTrackDuration = findViewById(R.id.tvTrackDuration);
 		tvTrackElapsed = findViewById(R.id.tvTrackElapsed);
 
 		initSeekbar();
-		initRunnable();
 
-		String title = getIntent().getStringExtra("title");
-		String artists = getIntent().getStringExtra("artists");
-		String combined = artists + " " + title;
-
-		spotify.searchTracks(combined, new SpotifyCallback<TracksPager>()
-		{
-			@Override
-			public void failure(SpotifyError spotifyError)
-			{
-
-			}
-
-			@Override
-			public void success(TracksPager tracksPager, Response response)
-			{
-				currentTrack = tracksPager.tracks.items.get(0);
-			}
-		});
+		int index = getIntent().getIntExtra("index", 0);
+		List<Track> trackList = (List<Track>) getIntent().getSerializableExtra("list");
+		currentTrack = trackList.get(index);
+		tvTrackTitle.setText(SpotifyUtils.formatUnwantedCharsFromTitle(currentTrack.name, "("));
+		tvTrackArtists.setText(SpotifyUtils.toStringFromArtists(currentTrack));
 	}
 
 	@Override
 	protected void onStart()
 	{
 		super.onStart();
+		initPlayerOnEvent();
+
 		connectionParams = new ConnectionParams.Builder(SpotifyConstants.getClientID())
 				.setRedirectUri(REDIRECT_URI)
 				.showAuthView(true)
@@ -102,10 +99,10 @@ public class PlayTrackActivity extends Activity
 			{
 				spotifyAppRemote = mSpotifyAppRemote;
 
-				initPlayer();
+				initPlayerOnEvent();
 
-				long trackSec = currentTrack.duration_ms / 1000;
-				tvTrackDuration.setText(formatTimeDuration((int)trackSec));
+				long trackSec = (currentTrack.duration_ms / 1000) - 2;
+				tvTrackDuration.setText(formatTimeDuration((int) trackSec + 2));
 
 				Image trackImage = currentTrack.album.images.get(0);
 				if (trackImage != null)
@@ -114,6 +111,8 @@ public class PlayTrackActivity extends Activity
 				}
 
 				playerProgress.setMax((int) trackSec);
+				initRunnable();
+				runOnUiThread(updateSeekbarRunnable);
 			}
 
 			@Override
@@ -131,10 +130,16 @@ public class PlayTrackActivity extends Activity
 			if (currentTrack != null)
 			{
 				if (!playerState.isPaused)
+				{
 					spotifyAppRemote.getPlayerApi().pause();
-				else
+					btnPlay.setBackgroundResource(R.drawable.round_button_play);
+					updateSeekbarHandler.removeCallbacks(updateSeekbarRunnable);
+				} else
+				{
 					spotifyAppRemote.getPlayerApi().resume();
-
+					btnPlay.setBackgroundResource(R.drawable.round_button_pause);
+					updateSeekbarHandler.post(updateSeekbarRunnable);
+				}
 			}
 		}
 	}
@@ -177,15 +182,19 @@ public class PlayTrackActivity extends Activity
 			{
 				if (currentTrack != null)
 				{
+					if (elapsed == currentTrack.duration_ms / 1000)
+						elapsed = 0;
+
 					elapsed += 1;
+					tvTrackElapsed.setText(formatTimeDuration((int) elapsed));
 					playerProgress.setProgress((int) elapsed);
-					playerProgress.postDelayed(this, 1000);
 				}
+				updateSeekbarHandler.postDelayed(this, 1000);
 			}
 		};
 	}
 
-	private void initPlayer()
+	private void initPlayerOnEvent()
 	{
 		if (spotifyAppRemote != null)
 		{
@@ -195,29 +204,16 @@ public class PlayTrackActivity extends Activity
 				public void onEvent(PlayerState mPlayerState)
 				{
 					playerState = mPlayerState;
-
-					if (mPlayerState.playbackPosition == mPlayerState.track.duration)
-						elapsed = 0;
-
-					if (mPlayerState.isPaused)
-					{
-						btnPlay.setBackgroundResource(R.drawable.round_button_play);
-						playerProgress.removeCallbacks(updateSeekbarRunnable);
-					} else
-					{
-						btnPlay.setBackgroundResource(R.drawable.round_button_pause);
-						playerProgress.post(updateSeekbarRunnable);
-					}
 				}
 			});
 		}
 	}
 
-	private String formatTimeDuration(int totalSeconds) {
+	private String formatTimeDuration(int totalSeconds)
+	{
 		int mins = (totalSeconds % 3600) / 60;
 		int seconds = totalSeconds % 60;
 
 		return String.format("%02d:%02d", mins, seconds);
 	}
-
 }
