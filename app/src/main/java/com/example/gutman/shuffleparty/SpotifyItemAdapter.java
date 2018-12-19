@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
@@ -31,15 +32,18 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 
 	public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
 	{
-		private CardView root;
+		private final View itemView;
+		private final CardView root;
 		private final TextView title;
 		private final TextView artist;
 		private final TextView explicity;
 		private final ImageView image;
+		private int index;
 
 		public ViewHolder(View itemView)
 		{
 			super(itemView);
+			this.itemView = itemView;
 			root = itemView.findViewById(R.id.rootView);
 			title = itemView.findViewById(R.id.entityTitle);
 			artist = itemView.findViewById(R.id.entityArtist);
@@ -55,7 +59,8 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 				return;
 
 			notifyItemChanged(getLayoutPosition());
-			trackListener.onItemSelected(v, items.get(getAdapterPosition()), getLayoutPosition());
+			index = getLayoutPosition();
+			trackListener.onItemSelected(v, items.get(getAdapterPosition()), index);
 		}
 	}
 
@@ -65,7 +70,8 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 		this.trackListener = listener;
 	}
 
-	public SpotifyItemAdapter(Context context, List<Track> items) {
+	public SpotifyItemAdapter(Context context, List<Track> items)
+	{
 		this.context = context;
 		this.items = items;
 	}
@@ -81,11 +87,13 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 		notifyDataSetChanged();
 	}
 
-	public void setData(List<Track> items) {
+	public void setData(List<Track> items)
+	{
 		this.items = items;
 	}
 
-	public void setTrackListener(TrackItemSelectedListener listener) {
+	public void setTrackListener(TrackItemSelectedListener listener)
+	{
 		this.trackListener = listener;
 	}
 
@@ -101,12 +109,13 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 	{
 		Track item = items.get(position);
 
-		holder.title.setText(SpotifyUtils.formatUnwantedCharsFromTitle(item.name, "("));
+		holder.title.setText(item.name);
 
 		if (item.explicit)
 			holder.explicity.setText("EXPLICIT");
 		else
 			holder.explicity.setVisibility(View.GONE);
+
 
 		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + " • " + item.album.name);
 

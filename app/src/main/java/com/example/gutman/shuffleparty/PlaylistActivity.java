@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -15,16 +16,23 @@ import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
+import com.spotify.protocol.client.CallResult;
+import com.spotify.protocol.client.ErrorCallback;
 import com.spotify.protocol.client.Subscription;
+import com.spotify.protocol.types.Empty;
 import com.spotify.protocol.types.PlayerState;
 
 import java.util.List;
+import java.util.Random;
 
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
 
 public class PlaylistActivity extends Activity
 {
+	private boolean repeat = false;
+	private boolean shuffle = false;
+
 	private ConnectionParams connectionParams;
 	private SpotifyService spotify;
 	private SpotifyAppRemote spotifyAppRemote;
@@ -37,12 +45,16 @@ public class PlaylistActivity extends Activity
 
 	private SpotifyItemAdapter adapter;
 
-	private RecyclerView playlistItemsView;
 	private Button btnPlayPause;
+	private Button btnShuffle;
+	private Button btnRepeat;
+
+	private RecyclerView playlistItemsView;
 	private SeekBar seekbarProgress;
 
 	private TextView tvTrackDur;
 	private TextView tvTrackElap;
+	private TextView tvTrackTitleArtist;
 
 	private Handler seekbarHandler;
 	private Runnable updateRunnable;
@@ -56,11 +68,15 @@ public class PlaylistActivity extends Activity
 		seekbarHandler = new Handler();
 
 		btnPlayPause = findViewById(R.id.btnPlayPause);
+		btnRepeat = findViewById(R.id.btnRepeat);
+		btnShuffle = findViewById(R.id.btnShuffle);
+
 		playlistItemsView = findViewById(R.id.playlistItemsView);
 
 		seekbarProgress = findViewById(R.id.seekbarProgress);
 		initSeekbar();
 
+		tvTrackTitleArtist = findViewById(R.id.tvTrackTitleArtist);
 		tvTrackDur = findViewById(R.id.tvTrackDur);
 		tvTrackElap = findViewById(R.id.tvTrackElap);
 
@@ -73,6 +89,7 @@ public class PlaylistActivity extends Activity
 			@Override
 			public void onItemSelected(View itemView, Track item, int position)
 			{
+				index = position;
 				currentTrack = item;
 				spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
 				updateUI(currentTrack);
@@ -100,8 +117,10 @@ public class PlaylistActivity extends Activity
 			public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
 			{
 				spotifyAppRemote = mSpotifyAppRemote;
-
 				initPlayerOnEvent();
+
+				if (playerState != null && !playerState.isPaused)
+					return;
 
 				spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
 
@@ -139,16 +158,51 @@ public class PlaylistActivity extends Activity
 		}
 	}
 
-	private void updateUI(Track current) {
+	public void btnRepeat_onClick(View view)
+	{
+		if (repeat)
+		{
+			repeat = !repeat;
+			btnRepeat.setBackgroundResource(R.drawable.round_repeat);
+			spotifyAppRemote.getPlayerApi().setRepeat(SpotifyUtils.NO_REPEAT);
+		} else
+		{
+			repeat = !repeat;
+			btnRepeat.setBackgroundResource(R.drawable.round_repeat_green);
+			spotifyAppRemote.getPlayerApi().setRepeat(SpotifyUtils.REPEAT);
+		}
+	}
+
+	public void btnShuffle_onClick(View view)
+	{
+		if (shuffle)
+		{
+			shuffle = !shuffle;
+			spotifyAppRemote.getPlayerApi().setShuffle(shuffle);
+			btnShuffle.setBackgroundResource(R.drawable.round_shuffle);
+		} else
+		{
+			shuffle = !shuffle;
+			spotifyAppRemote.getPlayerApi().setShuffle(shuffle);
+			btnShuffle.setBackgroundResource(R.drawable.round_shuffle_green);
+		}
+	}
+
+	private void updateUI(Track current)
+	{
+		String formattedArtists = SpotifyUtils.toStringFromArtists(current);
+		tvTrackTitleArtist.setText(current.name + " • " + formattedArtists);
+
 		elapsed = 0;
-		seekbarProgress.setMax((int)(current.duration_ms / 1000) - 2);
+		seekbarProgress.setMax((int) (current.duration_ms / 1000) - 2);
 		seekbarProgress.setProgress(elapsed);
 
-		tvTrackDur.setText(SpotifyUtils.formatTimeDuration((int)current.duration_ms / 1000));
+		tvTrackDur.setText(SpotifyUtils.formatTimeDuration((int) current.duration_ms / 1000));
 		tvTrackElap.setText(SpotifyUtils.formatTimeDuration(elapsed));
 	}
 
-	private void initSeekbar(){
+	private void initSeekbar()
+	{
 		seekbarProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
 		{
 			@Override
@@ -176,7 +230,9 @@ public class PlaylistActivity extends Activity
 		});
 	}
 
-	private void initRunnable(){
+	// TODO: REFACTOR THIS GOD AWFUL METHOD WITH A TON OF CODE COPYING.
+	private void initRunnable()
+	{
 		updateRunnable = new Runnable()
 		{
 			@Override
@@ -189,13 +245,38 @@ public class PlaylistActivity extends Activity
 						if (index >= playlistItems.size() - 1)
 							index = -1;
 
-						index += 1;
-						currentTrack = playlistItems.get(index);
+						if (repeat)
+							elapsed = 0;
 
-						updateUI(currentTrack);
+						else
+						{
+							index += 1;
+							currentTrack = playlistItems.get(index);
 
-						elapsed = 0;
-						spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+							updateUI(currentTrack);
+
+							elapsed = 0;
+							spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+						}
+
+						if (shuffle) {
+							index = new Random().nextInt(playlistItems.size());
+							currentTrack = playlistItems.get(index);
+
+							updateUI(currentTrack);
+
+							elapsed = 0;
+							spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+						}
+						else {
+							index += 1;
+							currentTrack = playlistItems.get(index);
+
+							updateUI(currentTrack);
+
+							elapsed = 0;
+							spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+						}
 					}
 
 					elapsed += 1;
@@ -207,17 +288,18 @@ public class PlaylistActivity extends Activity
 		};
 	}
 
-	private void initPlayerOnEvent(){
-		if (spotifyAppRemote != null) {
+	private void initPlayerOnEvent()
+	{
+		if (spotifyAppRemote != null)
+		{
 			spotifyAppRemote.getPlayerApi().subscribeToPlayerState().setEventCallback(new Subscription.EventCallback<PlayerState>()
 			{
 				@Override
 				public void onEvent(PlayerState mPlayerState)
 				{
 					playerState = mPlayerState;
- 				}
+				}
 			});
 		}
 	}
-
 }

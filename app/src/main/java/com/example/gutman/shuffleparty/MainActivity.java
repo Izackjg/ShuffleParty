@@ -33,19 +33,13 @@ import retrofit.client.Response;
 
 public class MainActivity extends Activity
 {
-	private FirebaseDatabase database;
-	private DatabaseReference reference;
-
 	private ConnectionParams connectionParams;
 
 	private List<Track> playlistItems = new ArrayList<>();
-	private List<Track> trackList;
-	private Track currentTrack;
 
 	private SpotifyService spotify;
 	private SpotifyAppRemote spotifyAppRemote;
 
-	private static final String REDIRECT_URI = "http://example.com/callback/";
 	private static String apiToken;
 
 	private Context main;
@@ -83,7 +77,7 @@ public class MainActivity extends Activity
 		super.onStart();
 		connectionParams =
 				new ConnectionParams.Builder(SpotifyConstants.ClientID)
-						.setRedirectUri(REDIRECT_URI)
+						.setRedirectUri(SpotifyConstants.REDIRECT_URL)
 						.showAuthView(true)
 						.build();
 
@@ -98,8 +92,8 @@ public class MainActivity extends Activity
 							@Override
 							public void onItemSelected(View itemView, Track item, int position)
 							{
-								currentTrack = item;
-								playlistItems.add(item);
+								if (!playlistItems.contains(item))
+									playlistItems.add(item);
 
 								searchView.setQuery("", false);
 								adapter.clearData();
@@ -125,16 +119,12 @@ public class MainActivity extends Activity
 	private void initSearchbar()
 	{
 		searchView = findViewById(R.id.search_view);
-		searchView.setQuery("query", false);
-
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener()
 		{
 			@Override
 			public boolean onQueryTextSubmit(String query)
 			{
-				String randomQ = SpotifyUtils.getRandomTitle();
-
-				spotify.searchTracks(randomQ, new SpotifyCallback<TracksPager>()
+				spotify.searchTracks(query, new SpotifyCallback<TracksPager>()
 				{
 					@Override
 					public void failure(SpotifyError spotifyError)
@@ -145,8 +135,7 @@ public class MainActivity extends Activity
 					@Override
 					public void success(TracksPager tracksPager, Response response)
 					{
-						trackList = tracksPager.tracks.items;
-						adapter.addData(trackList);
+						adapter.addData(tracksPager.tracks.items);
 						searchResults.setAdapter(adapter);
 					}
 				});
