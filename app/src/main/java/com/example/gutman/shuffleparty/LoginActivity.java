@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.example.gutman.shuffleparty.utils.CredentialsHandler;
+import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
@@ -48,7 +50,10 @@ public class LoginActivity extends Activity
 			{
 				case TOKEN:
 					ApiToken = response.getAccessToken();
-					CredentialsHandler.setToken(this, ApiToken, 3600, TimeUnit.SECONDS);
+					if (CredentialsHandler.COUNT_NUM >= 2)
+						CredentialsHandler.setToken(this, ApiToken, 365, TimeUnit.DAYS);
+					else
+						CredentialsHandler.setToken(this, ApiToken, 1, TimeUnit.HOURS);
 
 					Intent intent = new Intent(this, MainActivity.class);
 					startActivity(intent);
@@ -64,7 +69,7 @@ public class LoginActivity extends Activity
 	}
 
 	public void btnSpotifyLogin_onClick(View v) {
-		AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(SpotifyConstants.getClientID(), AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
+		AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(SpotifyConstants.ClientID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
 		builder.setScopes(new String[]{"streaming"});
 		AuthenticationRequest request = builder.build();
 

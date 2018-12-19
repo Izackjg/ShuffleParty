@@ -15,6 +15,9 @@ import kaaes.spotify.webapi.android.models.Track;
 public class SpotifyUtils
 {
 
+	public static final int NO_REPEAT = 0;
+	public static final int REPEAT = 1;
+
 	public static String getRandomTitle()
 	{
 		List<String> titles = Arrays.asList("Good Form", "Never Recover", "Mama", "Eminem Fall", "Kazka Cry", "rockstar", "Blame It On Me",
@@ -53,6 +56,14 @@ public class SpotifyUtils
 			return title.substring(0, index);
 		}
 		return title;
+	}
+
+	public static String formatTimeDuration(int totalSeconds)
+	{
+		int mins = (totalSeconds % 3600) / 60;
+		int seconds = totalSeconds % 60;
+
+		return String.format("%02d:%02d", mins, seconds);
 	}
 
 	private static boolean containsUnwantedChars(String title, String unwanted)

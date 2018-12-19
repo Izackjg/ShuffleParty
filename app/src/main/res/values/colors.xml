@@ -3,6 +3,7 @@
     <color name="colorPrimary">#000000</color>
     <color name="secondaryColor">#7F7E7E</color>
     <color name="colorAccent">#b40cb7</color>
+    <color name="selectedColor">#6b8abc</color>
     <color name="explicityBackground">#6d7075</color>
     <color name="explicityForeground">#2b2c2d</color>
     <color name="white">#ffffff</color>

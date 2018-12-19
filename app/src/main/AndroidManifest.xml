@@ -20,6 +20,7 @@
         </activity>
         <activity android:name=".MainActivity"/>
         <activity android:name=".PlayTrackActivity"/>
+        <activity android:name=".PlaylistActivity"/>
     </application>
 
 </manifest>

@@ -1,9 +1,8 @@
 package com.example.gutman.shuffleparty;
 
 import android.content.Context;
-import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,27 +15,23 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-import kaaes.spotify.webapi.android.models.Album;
-import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Image;
-import kaaes.spotify.webapi.android.models.Playlist;
 import kaaes.spotify.webapi.android.models.Track;
 
-class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.ViewHolder>
+class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHolder>
 {
 	public interface TrackItemSelectedListener
 	{
-		void onItemSelected(View itemView, Track track, int position);
+		void onItemSelected(View itemView, Track item, int position);
 	}
 
-
-	private final List<Track> items = new ArrayList<>();
-	private final Context context;
-	private final TrackItemSelectedListener trackListener;
-	private int index;
+	private List<Track> items = new ArrayList<>();
+	private Context context;
+	private TrackItemSelectedListener trackListener;
 
 	public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
 	{
+		private CardView root;
 		private final TextView title;
 		private final TextView artist;
 		private final TextView explicity;
@@ -45,6 +40,7 @@ class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.Vie
 		public ViewHolder(View itemView)
 		{
 			super(itemView);
+			root = itemView.findViewById(R.id.rootView);
 			title = itemView.findViewById(R.id.entityTitle);
 			artist = itemView.findViewById(R.id.entityArtist);
 			image = itemView.findViewById(R.id.entityImage);
@@ -55,15 +51,23 @@ class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.Vie
 		@Override
 		public void onClick(View v)
 		{
+			if (trackListener == null)
+				return;
+
 			notifyItemChanged(getLayoutPosition());
 			trackListener.onItemSelected(v, items.get(getAdapterPosition()), getLayoutPosition());
 		}
 	}
 
-	public SearchResultsAdapter(Context context, TrackItemSelectedListener listener)
+	public SpotifyItemAdapter(Context context, TrackItemSelectedListener listener)
 	{
 		this.context = context;
 		this.trackListener = listener;
+	}
+
+	public SpotifyItemAdapter(Context context, List<Track> items) {
+		this.context = context;
+		this.items = items;
 	}
 
 	public void clearData()
@@ -75,6 +79,14 @@ class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.Vie
 	{
 		this.items.addAll(items);
 		notifyDataSetChanged();
+	}
+
+	public void setData(List<Track> items) {
+		this.items = items;
+	}
+
+	public void setTrackListener(TrackItemSelectedListener listener) {
+		this.trackListener = listener;
 	}
 
 	@Override
@@ -109,10 +121,5 @@ class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.Vie
 	public int getItemCount()
 	{
 		return items.size();
-	}
-
-	public int getIndex()
-	{
-		return index;
 	}
 }

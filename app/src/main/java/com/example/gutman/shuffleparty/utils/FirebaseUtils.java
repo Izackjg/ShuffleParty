@@ -1,4 +1,4 @@
-package com.example.gutman.shuffleparty;
+package com.example.gutman.shuffleparty.utils;
 
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;

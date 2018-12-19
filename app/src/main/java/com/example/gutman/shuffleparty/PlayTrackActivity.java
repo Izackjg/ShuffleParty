@@ -9,6 +9,8 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.gutman.shuffleparty.utils.CredentialsHandler;
+import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
@@ -19,19 +21,17 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import kaaes.spotify.webapi.android.SpotifyCallback;
-import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
-import kaaes.spotify.webapi.android.models.TracksPager;
-import retrofit.client.Response;
 
 public class PlayTrackActivity extends Activity
 {
 	private String REDIRECT_URI = "http://example.com/callback/";
 
-	private long elapsed = 0;
+	private int elapsed = 0;
+	private int index = 0;
+	private List<Track> playlistItems;
 	private Track currentTrack = null;
 
 	private ConnectionParams connectionParams;
@@ -74,9 +74,10 @@ public class PlayTrackActivity extends Activity
 
 		initSeekbar();
 
-		int index = getIntent().getIntExtra("index", 0);
-		List<Track> trackList = (List<Track>) getIntent().getSerializableExtra("list");
-		currentTrack = trackList.get(index);
+		playlistItems = (List<Track>) getIntent().getSerializableExtra("list");
+		index = 0;
+		currentTrack = playlistItems.get(index);
+
 		tvTrackTitle.setText(SpotifyUtils.formatUnwantedCharsFromTitle(currentTrack.name, "("));
 		tvTrackArtists.setText(SpotifyUtils.toStringFromArtists(currentTrack));
 	}
@@ -87,7 +88,7 @@ public class PlayTrackActivity extends Activity
 		super.onStart();
 		initPlayerOnEvent();
 
-		connectionParams = new ConnectionParams.Builder(SpotifyConstants.getClientID())
+		connectionParams = new ConnectionParams.Builder(SpotifyConstants.ClientID)
 				.setRedirectUri(REDIRECT_URI)
 				.showAuthView(true)
 				.build();
@@ -98,19 +99,11 @@ public class PlayTrackActivity extends Activity
 			public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
 			{
 				spotifyAppRemote = mSpotifyAppRemote;
+				spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
 
+				updateUI(currentTrack);
 				initPlayerOnEvent();
 
-				long trackSec = (currentTrack.duration_ms / 1000) - 2;
-				tvTrackDuration.setText(formatTimeDuration((int) trackSec + 2));
-
-				Image trackImage = currentTrack.album.images.get(0);
-				if (trackImage != null)
-				{
-					Picasso.get().load(trackImage.url).into(trackImageView);
-				}
-
-				playerProgress.setMax((int) trackSec);
 				initRunnable();
 				runOnUiThread(updateSeekbarRunnable);
 			}
@@ -154,7 +147,7 @@ public class PlayTrackActivity extends Activity
 				if (fromUser)
 				{
 					elapsed = progress;
-					seekBar.setProgress((int) elapsed);
+					seekBar.setProgress(elapsed);
 					spotifyAppRemote.getPlayerApi().seekTo(elapsed * 1000);
 				}
 			}
@@ -182,12 +175,23 @@ public class PlayTrackActivity extends Activity
 			{
 				if (currentTrack != null)
 				{
-					if (elapsed == currentTrack.duration_ms / 1000)
+					if (elapsed == (currentTrack.duration_ms / 1000) - 2)
+					{
+						if (index >= playlistItems.size() - 1)
+							index = 0;
+
+						index += 1;
+						currentTrack = playlistItems.get(index);
+
+						updateUI(currentTrack);
+
 						elapsed = 0;
+						spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+					}
 
 					elapsed += 1;
-					tvTrackElapsed.setText(formatTimeDuration((int) elapsed));
-					playerProgress.setProgress((int) elapsed);
+					tvTrackElapsed.setText(SpotifyUtils.formatTimeDuration(elapsed));
+					playerProgress.setProgress(elapsed);
 				}
 				updateSeekbarHandler.postDelayed(this, 1000);
 			}
@@ -209,11 +213,20 @@ public class PlayTrackActivity extends Activity
 		}
 	}
 
-	private String formatTimeDuration(int totalSeconds)
-	{
-		int mins = (totalSeconds % 3600) / 60;
-		int seconds = totalSeconds % 60;
+	private void updateUI(Track current) {
+		Image trackImage = current.album.images.get(0);
+		if (trackImage != null)
+		{
+			Picasso.get().load(trackImage.url).into(trackImageView);
+		}
 
-		return String.format("%02d:%02d", mins, seconds);
+		tvTrackTitle.setText(SpotifyUtils.formatUnwantedCharsFromTitle(current.name, "("));
+		tvTrackArtists.setText(SpotifyUtils.toStringFromArtists(current));
+
+		playerProgress.setMax((int)(current.duration_ms / 1000) - 2);
+		playerProgress.setProgress(elapsed);
+
+		tvTrackDuration.setText(SpotifyUtils.formatTimeDuration((int)current.duration_ms / 1000));
+		tvTrackElapsed.setText(SpotifyUtils.formatTimeDuration(elapsed));
 	}
 }

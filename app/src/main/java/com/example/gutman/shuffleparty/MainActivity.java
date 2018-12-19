@@ -1,6 +1,5 @@
 package com.example.gutman.shuffleparty;
 
-import com.example.gutman.shuffleparty.SearchResultsAdapter;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,11 +7,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.SearchView;
 
+import com.example.gutman.shuffleparty.utils.CredentialsHandler;
+import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -21,6 +21,7 @@ import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyCallback;
@@ -37,6 +38,7 @@ public class MainActivity extends Activity
 
 	private ConnectionParams connectionParams;
 
+	private List<Track> playlistItems = new ArrayList<>();
 	private List<Track> trackList;
 	private Track currentTrack;
 
@@ -49,7 +51,7 @@ public class MainActivity extends Activity
 	private Context main;
 	private SearchView searchView;
 	private RecyclerView searchResults;
-	private SearchResultsAdapter adapter;
+	private SpotifyItemAdapter adapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -80,7 +82,7 @@ public class MainActivity extends Activity
 	{
 		super.onStart();
 		connectionParams =
-				new ConnectionParams.Builder(SpotifyConstants.getClientID())
+				new ConnectionParams.Builder(SpotifyConstants.ClientID)
 						.setRedirectUri(REDIRECT_URI)
 						.showAuthView(true)
 						.build();
@@ -91,25 +93,24 @@ public class MainActivity extends Activity
 					public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
 					{
 						spotifyAppRemote = mSpotifyAppRemote;
-						adapter = new SearchResultsAdapter(main, new SearchResultsAdapter.TrackItemSelectedListener()
+						adapter = new SpotifyItemAdapter(main, new SpotifyItemAdapter.TrackItemSelectedListener()
 						{
 							@Override
 							public void onItemSelected(View itemView, Track item, int position)
 							{
 								currentTrack = item;
-
-								String trackUri = item.uri;
-
-								spotifyAppRemote.getPlayerApi().play(trackUri);
+								playlistItems.add(item);
 
 								searchView.setQuery("", false);
 								adapter.clearData();
 								searchResults.setAdapter(adapter);
 
-								Intent playTrackActivity = new Intent(main, PlayTrackActivity.class);
-								playTrackActivity.putExtra("index", position);
-								playTrackActivity.putExtra("list", (Serializable) trackList);
-								startActivity(playTrackActivity);
+								if (playlistItems.size() >= 5)
+								{
+									Intent playlistActivity = new Intent(main, PlaylistActivity.class);
+									playlistActivity.putExtra("pl", (Serializable) playlistItems);
+									startActivity(playlistActivity);
+								}
 							}
 						});
 					}
@@ -121,19 +122,10 @@ public class MainActivity extends Activity
 				});
 	}
 
-	private void initSearchbar(){
+	private void initSearchbar()
+	{
 		searchView = findViewById(R.id.search_view);
 		searchView.setQuery("query", false);
-
-		searchView.setOnCloseListener(new SearchView.OnCloseListener()
-		{
-			@Override
-			public boolean onClose()
-			{
-
-				return true;
-			}
-		});
 
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener()
 		{
@@ -141,6 +133,7 @@ public class MainActivity extends Activity
 			public boolean onQueryTextSubmit(String query)
 			{
 				String randomQ = SpotifyUtils.getRandomTitle();
+
 				spotify.searchTracks(randomQ, new SpotifyCallback<TracksPager>()
 				{
 					@Override
