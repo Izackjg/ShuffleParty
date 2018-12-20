@@ -1,10 +1,12 @@
 package com.example.gutman.shuffleparty;
 
 import android.app.Activity;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -38,8 +40,8 @@ public class PlaylistActivity extends Activity
 	private SpotifyAppRemote spotifyAppRemote;
 	private PlayerState playerState;
 
-	private int elapsed = 0;
-	private int index = 0;
+	private int elapsed;
+	private int index;
 	private List<Track> playlistItems;
 	private Track currentTrack;
 
@@ -79,33 +81,14 @@ public class PlaylistActivity extends Activity
 		tvTrackTitleArtist = findViewById(R.id.tvTrackTitleArtist);
 		tvTrackDur = findViewById(R.id.tvTrackDur);
 		tvTrackElap = findViewById(R.id.tvTrackElap);
-
-		playlistItems = (List<Track>) getIntent().getSerializableExtra("pl");
-		currentTrack = playlistItems.get(index);
-
-		adapter = new SpotifyItemAdapter(this, playlistItems);
-		adapter.setTrackListener(new SpotifyItemAdapter.TrackItemSelectedListener()
-		{
-			@Override
-			public void onItemSelected(View itemView, Track item, int position)
-			{
-				index = position;
-				currentTrack = item;
-				spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
-				updateUI(currentTrack);
-			}
-		});
-
-		playlistItemsView.setHasFixedSize(true);
-		playlistItemsView.setLayoutManager(new LinearLayoutManager(this));
-
-		playlistItemsView.setAdapter(adapter);
 	}
 
 	@Override
 	protected void onStart()
 	{
 		super.onStart();
+		init();
+
 		connectionParams = new ConnectionParams.Builder(SpotifyConstants.ClientID)
 				.setRedirectUri(SpotifyConstants.REDIRECT_URL)
 				.showAuthView(true)
@@ -122,7 +105,11 @@ public class PlaylistActivity extends Activity
 				if (playerState != null && !playerState.isPaused)
 					return;
 
-				spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+				if (index == 0)
+				{
+					spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+					Log.d(getClass().getSimpleName(), "PLAYING FIRST TRACK");
+				}
 
 				initRunnable();
 				runOnUiThread(updateRunnable);
@@ -242,48 +229,34 @@ public class PlaylistActivity extends Activity
 				{
 					if (elapsed == (currentTrack.duration_ms / 1000) - 2)
 					{
-						if (index >= playlistItems.size() - 1)
+						Log.d(getClass().getSimpleName(), "TRACK ENDED");
+						if (index == playlistItems.size() - 1)
 							index = -1;
 
-						if (repeat)
-							elapsed = 0;
+						int temp = index;
 
-						else
-						{
-							index += 1;
-							currentTrack = playlistItems.get(index);
-
-							updateUI(currentTrack);
-
-							elapsed = 0;
-							spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
-						}
-
-						if (shuffle) {
+						if (shuffle)
 							index = new Random().nextInt(playlistItems.size());
-							currentTrack = playlistItems.get(index);
-
-							updateUI(currentTrack);
-
+						if (repeat)
+						{
+							index = temp;
 							elapsed = 0;
-							spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
 						}
-						else {
+						if (!repeat && !shuffle)
 							index += 1;
-							currentTrack = playlistItems.get(index);
 
-							updateUI(currentTrack);
-
-							elapsed = 0;
-							spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
-						}
+						currentTrack = playlistItems.get(index);
+						spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+						updateUI(currentTrack);
+						Log.d(getClass().getSimpleName(), "NEXT TRACK");
 					}
 
 					elapsed += 1;
 					tvTrackElap.setText(SpotifyUtils.formatTimeDuration(elapsed));
 					seekbarProgress.setProgress(elapsed);
+
+					seekbarHandler.postDelayed(this, 1000);
 				}
-				seekbarHandler.postDelayed(this, 1000);
 			}
 		};
 	}
@@ -301,5 +274,65 @@ public class PlaylistActivity extends Activity
 				}
 			});
 		}
+	}
+
+	private void init()
+	{
+		index = 0;
+		elapsed = 0;
+
+		playlistItems = (List<Track>) getIntent().getSerializableExtra("pl");
+		currentTrack = playlistItems.get(index);
+
+		playlistItemsView.setHasFixedSize(true);
+		playlistItemsView.setLayoutManager(new LinearLayoutManager(this));
+
+		adapter = new SpotifyItemAdapter(this, playlistItems);
+		adapter.setTrackListener(new SpotifyItemAdapter.TrackItemSelectedListener()
+		{
+			@Override
+			public void onItemSelected(View itemView, Track item, int position)
+			{
+				index = position;
+				currentTrack = item;
+				spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+				updateUI(currentTrack);
+			}
+		});
+
+		playlistItemsView.setAdapter(adapter);
+
+		final SwipeController controller = new SwipeController(new SwipeControllerActions()
+		{
+			@Override
+			public void onRightClicked(int position)
+			{
+				playlistItems.remove(position);
+				adapter.setData(playlistItems);
+				playlistItemsView.setAdapter(adapter);
+
+				if (index != playlistItems.size() - 1)
+					index = position;
+				else
+					index = 0;
+
+				currentTrack = playlistItems.get(index);
+				spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+				updateUI(currentTrack);
+			}
+		});
+
+		ItemTouchHelper helper = new ItemTouchHelper(controller);
+		helper.attachToRecyclerView(playlistItemsView);
+
+		playlistItemsView.addItemDecoration(new RecyclerView.ItemDecoration()
+		{
+			@Override
+			public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state)
+			{
+				controller.onDraw(c);
+			}
+		});
+
 	}
 }

@@ -99,7 +99,7 @@ public class MainActivity extends Activity
 								adapter.clearData();
 								searchResults.setAdapter(adapter);
 
-								if (playlistItems.size() >= 5)
+								if (playlistItems.size() >= 3)
 								{
 									Intent playlistActivity = new Intent(main, PlaylistActivity.class);
 									playlistActivity.putExtra("pl", (Serializable) playlistItems);
