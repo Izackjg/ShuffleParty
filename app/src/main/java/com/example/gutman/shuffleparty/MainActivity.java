@@ -122,8 +122,17 @@ public class MainActivity extends Activity
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener()
 		{
 			@Override
-			public boolean onQueryTextSubmit(String query)
+			public boolean onQueryTextSubmit(final String query)
 			{
+				if (adapter.getItemCount() != 0)
+				{
+					adapter.clearData();
+					searchResults.setAdapter(adapter);
+				}
+
+				if (query.isEmpty())
+					return false;
+
 				spotify.searchTracks(query, new SpotifyCallback<TracksPager>()
 				{
 					@Override

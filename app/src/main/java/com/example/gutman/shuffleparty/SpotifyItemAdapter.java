@@ -1,6 +1,7 @@
 package com.example.gutman.shuffleparty;
 
 import android.content.Context;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -30,10 +31,11 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 	private Context context;
 	private TrackItemSelectedListener trackListener;
 
+	private Track recentlyDeletedItem;
+	private int recentlyDeletedPos;
+
 	public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
 	{
-		private final View itemView;
-		private final CardView root;
 		private final TextView title;
 		private final TextView artist;
 		private final TextView explicity;
@@ -43,8 +45,6 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 		public ViewHolder(View itemView)
 		{
 			super(itemView);
-			this.itemView = itemView;
-			root = itemView.findViewById(R.id.rootView);
 			title = itemView.findViewById(R.id.entityTitle);
 			artist = itemView.findViewById(R.id.entityArtist);
 			image = itemView.findViewById(R.id.entityImage);
@@ -126,9 +126,21 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 		}
 	}
 
+	public void deleteItem(int pos) {
+		recentlyDeletedItem = items.get(pos);
+		recentlyDeletedPos = pos;
+		items.remove(pos);
+		notifyItemRemoved(pos);
+	}
+
 	@Override
 	public int getItemCount()
 	{
 		return items.size();
+	}
+
+	public Context getContext()
+	{
+		return context;
 	}
 }

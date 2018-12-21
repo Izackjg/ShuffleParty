@@ -22,6 +22,7 @@ import com.spotify.protocol.client.CallResult;
 import com.spotify.protocol.client.ErrorCallback;
 import com.spotify.protocol.client.Subscription;
 import com.spotify.protocol.types.Empty;
+import com.spotify.protocol.types.Item;
 import com.spotify.protocol.types.PlayerState;
 
 import java.util.List;
@@ -32,14 +33,12 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class PlaylistActivity extends Activity
 {
-	private boolean repeat = false;
-	private boolean shuffle = false;
-
 	private ConnectionParams connectionParams;
 	private SpotifyService spotify;
 	private SpotifyAppRemote spotifyAppRemote;
 	private PlayerState playerState;
 
+	private long duration;
 	private int elapsed;
 	private int index;
 	private List<Track> playlistItems;
@@ -147,14 +146,12 @@ public class PlaylistActivity extends Activity
 
 	public void btnRepeat_onClick(View view)
 	{
-		if (repeat)
+		if (playerState.playbackOptions.repeatMode == 1)
 		{
-			repeat = !repeat;
 			btnRepeat.setBackgroundResource(R.drawable.round_repeat);
 			spotifyAppRemote.getPlayerApi().setRepeat(SpotifyUtils.NO_REPEAT);
-		} else
+		} else if (playerState.playbackOptions.repeatMode == 0)
 		{
-			repeat = !repeat;
 			btnRepeat.setBackgroundResource(R.drawable.round_repeat_green);
 			spotifyAppRemote.getPlayerApi().setRepeat(SpotifyUtils.REPEAT);
 		}
@@ -162,29 +159,37 @@ public class PlaylistActivity extends Activity
 
 	public void btnShuffle_onClick(View view)
 	{
-		if (shuffle)
+		if (playerState.playbackOptions.isShuffling)
 		{
-			shuffle = !shuffle;
-			spotifyAppRemote.getPlayerApi().setShuffle(shuffle);
+			spotifyAppRemote.getPlayerApi().setShuffle(!playerState.playbackOptions.isShuffling);
 			btnShuffle.setBackgroundResource(R.drawable.round_shuffle);
 		} else
 		{
-			shuffle = !shuffle;
-			spotifyAppRemote.getPlayerApi().setShuffle(shuffle);
+			spotifyAppRemote.getPlayerApi().setShuffle(playerState.playbackOptions.isShuffling);
 			btnShuffle.setBackgroundResource(R.drawable.round_shuffle_green);
 		}
 	}
 
 	private void updateUI(Track current)
 	{
+		// In the event of removing the last track in the list.
+		if (current == null)
+		{
+			elapsed = 0;
+			tvTrackElap.setText(SpotifyUtils.formatTimeDuration(elapsed));
+			tvTrackDur.setText(SpotifyUtils.formatTimeDuration(elapsed));
+			tvTrackTitleArtist.setText("");
+			return;
+		}
+
 		String formattedArtists = SpotifyUtils.toStringFromArtists(current);
 		tvTrackTitleArtist.setText(current.name + " • " + formattedArtists);
 
 		elapsed = 0;
-		seekbarProgress.setMax((int) (current.duration_ms / 1000) - 2);
+		seekbarProgress.setMax((int) duration - 2);
 		seekbarProgress.setProgress(elapsed);
 
-		tvTrackDur.setText(SpotifyUtils.formatTimeDuration((int) current.duration_ms / 1000));
+		tvTrackDur.setText(SpotifyUtils.formatTimeDuration((int) duration));
 		tvTrackElap.setText(SpotifyUtils.formatTimeDuration(elapsed));
 	}
 
@@ -217,7 +222,6 @@ public class PlaylistActivity extends Activity
 		});
 	}
 
-	// TODO: REFACTOR THIS GOD AWFUL METHOD WITH A TON OF CODE COPYING.
 	private void initRunnable()
 	{
 		updateRunnable = new Runnable()
@@ -227,22 +231,21 @@ public class PlaylistActivity extends Activity
 			{
 				if (currentTrack != null)
 				{
-					if (elapsed == (currentTrack.duration_ms / 1000) - 2)
+					if (elapsed == duration - 2)
 					{
-						Log.d(getClass().getSimpleName(), "TRACK ENDED");
 						if (index == playlistItems.size() - 1)
 							index = -1;
 
 						int temp = index;
 
-						if (shuffle)
+						if (playerState.playbackOptions.isShuffling)
 							index = new Random().nextInt(playlistItems.size());
-						if (repeat)
+						if (playerState.playbackOptions.repeatMode == 0)
 						{
 							index = temp;
 							elapsed = 0;
 						}
-						if (!repeat && !shuffle)
+						if (playerState.playbackOptions.repeatMode == 0 && !playerState.playbackOptions.isShuffling)
 							index += 1;
 
 						currentTrack = playlistItems.get(index);
@@ -283,6 +286,7 @@ public class PlaylistActivity extends Activity
 
 		playlistItems = (List<Track>) getIntent().getSerializableExtra("pl");
 		currentTrack = playlistItems.get(index);
+		duration = currentTrack.duration_ms / 1000;
 
 		playlistItemsView.setHasFixedSize(true);
 		playlistItemsView.setLayoutManager(new LinearLayoutManager(this));
@@ -302,37 +306,7 @@ public class PlaylistActivity extends Activity
 
 		playlistItemsView.setAdapter(adapter);
 
-		final SwipeController controller = new SwipeController(new SwipeControllerActions()
-		{
-			@Override
-			public void onRightClicked(int position)
-			{
-				playlistItems.remove(position);
-				adapter.setData(playlistItems);
-				playlistItemsView.setAdapter(adapter);
-
-				if (index != playlistItems.size() - 1)
-					index = position;
-				else
-					index = 0;
-
-				currentTrack = playlistItems.get(index);
-				spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
-				updateUI(currentTrack);
-			}
-		});
-
-		ItemTouchHelper helper = new ItemTouchHelper(controller);
-		helper.attachToRecyclerView(playlistItemsView);
-
-		playlistItemsView.addItemDecoration(new RecyclerView.ItemDecoration()
-		{
-			@Override
-			public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state)
-			{
-				controller.onDraw(c);
-			}
-		});
-
+		ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeDeleteCallback(adapter));
+		itemTouchHelper.attachToRecyclerView(playlistItemsView);
 	}
 }
