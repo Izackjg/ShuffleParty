@@ -2,6 +2,8 @@ package com.example.gutman.shuffleparty.utils;
 
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
 
+import com.spotify.android.appremote.api.ConnectionParams;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,11 +11,18 @@ import java.util.Random;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.Album;
+import kaaes.spotify.webapi.android.models.AlbumSimple;
 import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.TrackSimple;
 
 public class SpotifyUtils
 {
+	public enum SEARCH_TYPE {
+		Album,
+		Track
+	}
 
 	public static final int NO_REPEAT = 0;
 	public static final int REPEAT = 1;
@@ -38,7 +47,27 @@ public class SpotifyUtils
 		return api.getService();
 	}
 
+	public static ConnectionParams getParams()
+	{
+		return new ConnectionParams.Builder(SpotifyConstants.ClientID)
+				.setRedirectUri(SpotifyConstants.REDIRECT_URL)
+				.showAuthView(true)
+				.build();
+	}
+
 	public static String toStringFromArtists(Track item)
+	{
+
+		List<String> names = new ArrayList<>();
+		for (ArtistSimple i : item.artists)
+		{
+			names.add(i.name);
+		}
+		Joiner joiner = Joiner.on(", ");
+		return joiner.join(names);
+	}
+
+	public static String toStringFromArtists(TrackSimple item)
 	{
 		List<String> names = new ArrayList<>();
 		for (ArtistSimple i : item.artists)
@@ -49,7 +78,8 @@ public class SpotifyUtils
 		return joiner.join(names);
 	}
 
-	public static String formatUnwantedCharsFromTitle(String title, String unwanted) {
+	public static String formatUnwantedCharsFromTitle(String title, String unwanted)
+	{
 		if (containsUnwantedChars(title, unwanted))
 		{
 			int index = title.indexOf(unwanted);

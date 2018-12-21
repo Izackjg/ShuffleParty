@@ -1,14 +1,11 @@
 package com.example.gutman.shuffleparty;
 
 import android.content.Context;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
@@ -17,21 +14,23 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import kaaes.spotify.webapi.android.models.AlbumSimple;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.TrackSimple;
 
-class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHolder>
+class SpotifyItemAdapter<T> extends RecyclerView.Adapter<SpotifyItemAdapter<T>.ViewHolder>
 {
-	public interface TrackItemSelectedListener
+	public interface ItemSelectedListener<T>
 	{
-		void onItemSelected(View itemView, Track item, int position);
+		void onItemSelected(View itemView, T item, int position);
 	}
 
-	private List<Track> items = new ArrayList<>();
+	private List<T> items = new ArrayList<>();
 	private Context context;
-	private TrackItemSelectedListener trackListener;
+	private ItemSelectedListener itemSelectedListener;
 
-	private Track recentlyDeletedItem;
+	private T recentlyDeletedItem;
 	private int recentlyDeletedPos;
 
 	public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
@@ -55,22 +54,22 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 		@Override
 		public void onClick(View v)
 		{
-			if (trackListener == null)
+			if (itemSelectedListener == null)
 				return;
 
 			notifyItemChanged(getLayoutPosition());
 			index = getLayoutPosition();
-			trackListener.onItemSelected(v, items.get(getAdapterPosition()), index);
+			itemSelectedListener.onItemSelected(v, items.get(getAdapterPosition()), index);
 		}
 	}
 
-	public SpotifyItemAdapter(Context context, TrackItemSelectedListener listener)
+	public SpotifyItemAdapter(Context context, ItemSelectedListener listener)
 	{
 		this.context = context;
-		this.trackListener = listener;
+		this.itemSelectedListener = listener;
 	}
 
-	public SpotifyItemAdapter(Context context, List<Track> items)
+	public SpotifyItemAdapter(Context context, List<T> items)
 	{
 		this.context = context;
 		this.items = items;
@@ -81,20 +80,24 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 		items.clear();
 	}
 
-	public void addData(List<Track> items)
+	public void addItem(T item) {
+		this.items.add(item);
+		notifyDataSetChanged();
+	}
+
+	public void addData(List<T> items)
 	{
 		this.items.addAll(items);
 		notifyDataSetChanged();
 	}
 
-	public void setData(List<Track> items)
-	{
+	public void setData(List<T> items){
 		this.items = items;
 	}
 
-	public void setTrackListener(TrackItemSelectedListener listener)
+	public void setItemSelectedListener(ItemSelectedListener listener)
 	{
-		this.trackListener = listener;
+		this.itemSelectedListener = listener;
 	}
 
 	@Override
@@ -107,26 +110,20 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 	@Override
 	public void onBindViewHolder(ViewHolder holder, int position)
 	{
-		Track item = items.get(position);
+		T item = items.get(position);
 
-		holder.title.setText(item.name);
-
-		if (item.explicit)
-			holder.explicity.setText("EXPLICIT");
-		else
-			holder.explicity.setVisibility(View.GONE);
-
-
-		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + " • " + item.album.name);
-
-		Image image = item.album.images.get(0);
-		if (image != null)
+		if (item instanceof Track)
 		{
-			Picasso.get().load(image.url).into(holder.image);
+			instanceOfTrack(holder, item);
+		}
+
+		else if (item instanceof AlbumSimple) {
+			instanceOfAlbumSimple(holder, item);
 		}
 	}
 
-	public void deleteItem(int pos) {
+	public void deleteItem(int pos)
+	{
 		recentlyDeletedItem = items.get(pos);
 		recentlyDeletedPos = pos;
 		items.remove(pos);
@@ -139,8 +136,36 @@ class SpotifyItemAdapter extends RecyclerView.Adapter<SpotifyItemAdapter.ViewHol
 		return items.size();
 	}
 
-	public Context getContext()
-	{
-		return context;
+	private void instanceOfTrack(ViewHolder holder, T item){
+		Track tItem = (Track)item;
+
+		holder.title.setText(tItem.name);
+
+		if (tItem.explicit)
+			holder.explicity.setText("EXPLICIT");
+		else
+			holder.explicity.setVisibility(View.GONE);
+
+
+		holder.artist.setText(SpotifyUtils.toStringFromArtists(tItem) + " • " + tItem.album.name);
+
+		Image image = tItem.album.images.get(0);
+		if (image != null)
+		{
+			Picasso.get().load(image.url).into(holder.image);
+		}
+	}
+
+	private void instanceOfAlbumSimple(ViewHolder holder, T item){
+		AlbumSimple aItem = (AlbumSimple) item;
+
+		holder.title.setText(aItem.name);
+
+		holder.explicity.setVisibility(View.GONE);
+
+		Image image = aItem.images.get(0);
+		if (image != null) {
+			Picasso.get().load(image.url).into(holder.image);
+		}
 	}
 }

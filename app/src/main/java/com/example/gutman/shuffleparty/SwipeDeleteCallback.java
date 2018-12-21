@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -17,8 +18,9 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 
 	private Drawable icon;
 	private final ColorDrawable background;
+	private int deletePos;
 
-	public SwipeDeleteCallback(SpotifyItemAdapter adapter)
+	public SwipeDeleteCallback(SpotifyItemAdapter adapter, Drawable icon)
 	{
 		// DRAG DIRS IS 0 SINCE IT CONTROLS RECYCLER VIEW UP OR DOWN - HENCE THE 0.
 
@@ -28,7 +30,7 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 		super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
 		this.adapter = adapter;
 
-		icon = ContextCompat.getDrawable(adapter.getContext(), R.drawable.round_delete);
+		this.icon = icon;
 		background = new ColorDrawable(Color.RED);
 	}
 
@@ -39,8 +41,8 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 		if (adapter.getItemCount() == 1)
 			return;
 
-		int pos = viewHolder.getAdapterPosition();
-		adapter.deleteItem(pos);
+		deletePos = viewHolder.getAdapterPosition();
+		adapter.deleteItem(deletePos);
 	}
 
 	@Override
@@ -52,6 +54,9 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 	@Override
 	public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive)
 	{
+		if (adapter.getItemCount() == 1)
+			return;
+
 		super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
 		// USED TO CALC BOUNDS FOR ICON & BACKGROUND.
 		View itemView = viewHolder.itemView;
@@ -93,5 +98,10 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 
 		background.draw(c);
 		icon.draw(c);
+	}
+
+	public int getDeletePos()
+	{
+		return deletePos;
 	}
 }

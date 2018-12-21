@@ -1,9 +1,10 @@
 package com.example.gutman.shuffleparty;
 
 import android.app.Activity;
-import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -18,11 +19,7 @@ import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
-import com.spotify.protocol.client.CallResult;
-import com.spotify.protocol.client.ErrorCallback;
 import com.spotify.protocol.client.Subscription;
-import com.spotify.protocol.types.Empty;
-import com.spotify.protocol.types.Item;
 import com.spotify.protocol.types.PlayerState;
 
 import java.util.List;
@@ -107,7 +104,6 @@ public class PlaylistActivity extends Activity
 				if (index == 0)
 				{
 					spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
-					Log.d(getClass().getSimpleName(), "PLAYING FIRST TRACK");
 				}
 
 				initRunnable();
@@ -292,21 +288,28 @@ public class PlaylistActivity extends Activity
 		playlistItemsView.setLayoutManager(new LinearLayoutManager(this));
 
 		adapter = new SpotifyItemAdapter(this, playlistItems);
-		adapter.setTrackListener(new SpotifyItemAdapter.TrackItemSelectedListener()
+		adapter.setItemSelectedListener(new SpotifyItemAdapter.ItemSelectedListener()
 		{
 			@Override
-			public void onItemSelected(View itemView, Track item, int position)
+			public void onItemSelected(View itemView, Object item, int position)
 			{
-				index = position;
-				currentTrack = item;
-				spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
-				updateUI(currentTrack);
+				if (currentTrack == item)
+					return;
+				if (item instanceof Track)
+				{
+					Track tItem = (Track) item;
+					index = position;
+					currentTrack = tItem;
+					spotifyAppRemote.getPlayerApi().play(currentTrack.uri);
+					updateUI(currentTrack);
+				}
 			}
 		});
 
 		playlistItemsView.setAdapter(adapter);
 
-		ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeDeleteCallback(adapter));
-		itemTouchHelper.attachToRecyclerView(playlistItemsView);
+		Drawable icon = ContextCompat.getDrawable(this, R.drawable.round_delete);
+		ItemTouchHelper touchHelper = new ItemTouchHelper(new SwipeDeleteCallback(adapter, icon));
+		touchHelper.attachToRecyclerView(playlistItemsView);
 	}
 }
