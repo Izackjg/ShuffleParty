@@ -8,9 +8,16 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
+// src: https://medium.com/@zackcosborn/step-by-step-recyclerview-swipe-to-delete-and-undo-7bbae1fce27e
+
 public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 {
-	// src: https://medium.com/@zackcosborn/step-by-step-recyclerview-swipe-to-delete-and-undo-7bbae1fce27e
+	public interface TrackSwipedListener
+	{
+		void onSwipedDelete(int position);
+	}
+
+	private TrackSwipedListener swipedListener;
 
 	private SpotifyTrackAdapter adapter;
 
@@ -32,6 +39,21 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 		background = new ColorDrawable(Color.RED);
 	}
 
+	public SwipeDeleteCallback(SpotifyTrackAdapter adapter, TrackSwipedListener listener, Drawable icon)
+	{
+		// DRAG DIRS IS 0 SINCE IT CONTROLS RECYCLER VIEW UP OR DOWN - HENCE THE 0.
+
+		// SECOND PARAM TELL ITEMTOUCHHELPER
+		// TO PASS SIMPLECALLBACK INFO
+		// ABOUT LEFT AND RIGHT SWIPES
+		super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+		this.adapter = adapter;
+
+		this.icon = icon;
+		background = new ColorDrawable(Color.RED);
+		this.swipedListener = listener;
+	}
+
 	// CALLED WHEN AN ITEM IS SWIPED OFF SCREEN.
 	@Override
 	public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction)
@@ -40,6 +62,10 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 			return;
 
 		deletePos = viewHolder.getAdapterPosition();
+
+		if (swipedListener != null)
+			swipedListener.onSwipedDelete(deletePos);
+
 		adapter.deleteItem(deletePos);
 	}
 
@@ -101,5 +127,15 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 	public int getDeletePos()
 	{
 		return deletePos;
+	}
+
+	public SpotifyTrackAdapter getAdapter()
+	{
+		return adapter;
+	}
+
+	public void setSwipedListener(TrackSwipedListener swipedListener)
+	{
+		this.swipedListener = swipedListener;
 	}
 }

@@ -1,10 +1,14 @@
 package com.example.gutman.shuffleparty;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -60,12 +64,15 @@ public class PlaylistActivity extends Activity
 
 	private SeekBar progress;
 
+	private Context main;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_playlist);
 
+		main = this;
 		handler = new Handler();
 
 		playlistItems = (List<Track>) getIntent().getSerializableExtra("pl");
@@ -73,9 +80,36 @@ public class PlaylistActivity extends Activity
 		trackAdapter.setItemSelectedListener(trackSelectedListener);
 
 		playlistView = findViewById(R.id.playlistItemsView);
+
 		playlistView.setHasFixedSize(true);
 		playlistView.setLayoutManager(new LinearLayoutManager(this));
 		playlistView.setAdapter(trackAdapter);
+
+		Drawable icon = ContextCompat.getDrawable(this, R.drawable.round_delete);
+		ItemTouchHelper touchHelper = new ItemTouchHelper(new SwipeDeleteCallback(trackAdapter, new SwipeDeleteCallback.TrackSwipedListener()
+		{
+			@Override
+			public void onSwipedDelete(int position)
+			{
+				// TODO: MOVE TO METHOD.
+				if (position > index || position < index)
+					return;
+				if (position == playlistItems.size() - 1)
+				{
+					index = 0;
+					current = playlistItems.get(index);
+					playerApi.play(current.uri);
+					updateUi(current);
+				} else
+				{
+					index = position + 1;
+					current = playlistItems.get(index);
+					playerApi.play(current.uri);
+					updateUi(current);
+				}
+			}
+		}, icon));
+		touchHelper.attachToRecyclerView(playlistView);
 
 		btnPlayPause = findViewById(R.id.btnPlayPause);
 		btnRepeat = findViewById(R.id.btnRepeat);
@@ -125,6 +159,7 @@ public class PlaylistActivity extends Activity
 
 	public void btnPlayPause_onClick(View view)
 	{
+		paused = !paused;
 		if (paused)
 		{
 			playerApi.resume();
@@ -177,9 +212,13 @@ public class PlaylistActivity extends Activity
 						currentState = playerState;
 
 						int elapsed = (int) currentState.playbackPosition / 1000;
+						int dur = (int) currentState.track.duration / 1000;
 
-						if (currentState.playbackPosition == current.duration_ms)
+						Log.d(main.getClass().getSimpleName(), "ELAPSED: " + elapsed + ": DUR: " + dur);
+
+						if (elapsed >= dur - 3)
 						{
+							Log.d(main.getClass().getSimpleName(), "END OF TRACK");
 							endOfTrack();
 						}
 
@@ -218,12 +257,12 @@ public class PlaylistActivity extends Activity
 		{
 			if (index == playlistItems.size() - 1)
 				index = -1;
-
 			index += 1;
-			current = playlistItems.get(index);
-			playerApi.play(current.uri);
-			updateUi(current);
 		}
+
+		current = playlistItems.get(index);
+		playerApi.play(current.uri);
+		updateUi(current);
 	}
 
 	private SpotifyTrackAdapter.TrackSelectedListener trackSelectedListener = new SpotifyTrackAdapter.TrackSelectedListener()
