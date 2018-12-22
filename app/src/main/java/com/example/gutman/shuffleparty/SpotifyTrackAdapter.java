@@ -14,23 +14,21 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-import kaaes.spotify.webapi.android.models.AlbumSimple;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
-import kaaes.spotify.webapi.android.models.TrackSimple;
 
-class SpotifyItemAdapter<T> extends RecyclerView.Adapter<SpotifyItemAdapter<T>.ViewHolder>
+class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewHolder>
 {
-	public interface ItemSelectedListener<T>
+	public interface TrackSelectedListener
 	{
-		void onItemSelected(View itemView, T item, int position);
+		void onItemSelected(View itemView, Track item, int position);
 	}
 
-	private List<T> items = new ArrayList<>();
 	private Context context;
-	private ItemSelectedListener itemSelectedListener;
+	private List<Track> items = new ArrayList<>();
+	private TrackSelectedListener itemSelectedListener;
 
-	private T recentlyDeletedItem;
+	private Track recentlyDeletedItem;
 	private int recentlyDeletedPos;
 
 	public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
@@ -63,13 +61,13 @@ class SpotifyItemAdapter<T> extends RecyclerView.Adapter<SpotifyItemAdapter<T>.V
 		}
 	}
 
-	public SpotifyItemAdapter(Context context, ItemSelectedListener listener)
+	public SpotifyTrackAdapter(Context context, TrackSelectedListener listener)
 	{
 		this.context = context;
 		this.itemSelectedListener = listener;
 	}
 
-	public SpotifyItemAdapter(Context context, List<T> items)
+	public SpotifyTrackAdapter(Context context, List<Track> items)
 	{
 		this.context = context;
 		this.items = items;
@@ -80,22 +78,24 @@ class SpotifyItemAdapter<T> extends RecyclerView.Adapter<SpotifyItemAdapter<T>.V
 		items.clear();
 	}
 
-	public void addItem(T item) {
+	public void addItem(Track item)
+	{
 		this.items.add(item);
 		notifyDataSetChanged();
 	}
 
-	public void addData(List<T> items)
+	public void addData(List<Track> items)
 	{
 		this.items.addAll(items);
 		notifyDataSetChanged();
 	}
 
-	public void setData(List<T> items){
+	public void setData(List<Track> items)
+	{
 		this.items = items;
 	}
 
-	public void setItemSelectedListener(ItemSelectedListener listener)
+	public void setItemSelectedListener(TrackSelectedListener listener)
 	{
 		this.itemSelectedListener = listener;
 	}
@@ -110,16 +110,21 @@ class SpotifyItemAdapter<T> extends RecyclerView.Adapter<SpotifyItemAdapter<T>.V
 	@Override
 	public void onBindViewHolder(ViewHolder holder, int position)
 	{
-		T item = items.get(position);
+		Track item = items.get(position);
 
-		if (item instanceof Track)
-		{
-			instanceOfTrack(holder, item);
-		}
+		holder.title.setText(item.name);
 
-		else if (item instanceof AlbumSimple) {
-			instanceOfAlbumSimple(holder, item);
-		}
+		if (item.explicit)
+			holder.explicity.setText("EXPLICIT");
+		else
+			holder.explicity.setVisibility(View.GONE);
+
+
+		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + " • " + item.album.name);
+
+		Image image = item.album.images.get(0);
+		if (image != null)
+			Picasso.get().load(image.url).into(holder.image);
 	}
 
 	public void deleteItem(int pos)
@@ -134,38 +139,5 @@ class SpotifyItemAdapter<T> extends RecyclerView.Adapter<SpotifyItemAdapter<T>.V
 	public int getItemCount()
 	{
 		return items.size();
-	}
-
-	private void instanceOfTrack(ViewHolder holder, T item){
-		Track tItem = (Track)item;
-
-		holder.title.setText(tItem.name);
-
-		if (tItem.explicit)
-			holder.explicity.setText("EXPLICIT");
-		else
-			holder.explicity.setVisibility(View.GONE);
-
-
-		holder.artist.setText(SpotifyUtils.toStringFromArtists(tItem) + " • " + tItem.album.name);
-
-		Image image = tItem.album.images.get(0);
-		if (image != null)
-		{
-			Picasso.get().load(image.url).into(holder.image);
-		}
-	}
-
-	private void instanceOfAlbumSimple(ViewHolder holder, T item){
-		AlbumSimple aItem = (AlbumSimple) item;
-
-		holder.title.setText(aItem.name);
-
-		holder.explicity.setVisibility(View.GONE);
-
-		Image image = aItem.images.get(0);
-		if (image != null) {
-			Picasso.get().load(image.url).into(holder.image);
-		}
 	}
 }

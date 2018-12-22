@@ -4,8 +4,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Icon;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
@@ -14,13 +12,13 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 {
 	// src: https://medium.com/@zackcosborn/step-by-step-recyclerview-swipe-to-delete-and-undo-7bbae1fce27e
 
-	private SpotifyItemAdapter adapter;
+	private SpotifyTrackAdapter adapter;
 
 	private Drawable icon;
 	private final ColorDrawable background;
 	private int deletePos;
 
-	public SwipeDeleteCallback(SpotifyItemAdapter adapter, Drawable icon)
+	public SwipeDeleteCallback(SpotifyTrackAdapter adapter, Drawable icon)
 	{
 		// DRAG DIRS IS 0 SINCE IT CONTROLS RECYCLER VIEW UP OR DOWN - HENCE THE 0.
 

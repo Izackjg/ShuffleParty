@@ -57,7 +57,6 @@ public class SpotifyUtils
 
 	public static String toStringFromArtists(Track item)
 	{
-
 		List<String> names = new ArrayList<>();
 		for (ArtistSimple i : item.artists)
 		{
