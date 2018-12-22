@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.squareup.picasso.Picasso;
 
@@ -120,11 +121,13 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 			holder.explicity.setVisibility(View.GONE);
 
 
-		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + " • " + item.album.name);
+		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + SpotifyConstants.SEPERATOR + item.album.name);
+
+		if (item.album.images.get(0) == null)
+			return;
 
 		Image image = item.album.images.get(0);
-		if (image != null)
-			Picasso.get().load(image.url).into(holder.image);
+		Picasso.get().load(image.url).into(holder.image);
 	}
 
 	public void deleteItem(int pos)
