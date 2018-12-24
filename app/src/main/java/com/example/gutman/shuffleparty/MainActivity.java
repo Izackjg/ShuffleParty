@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
@@ -26,6 +27,9 @@ import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.TracksPager;
+import kaaes.spotify.webapi.android.models.UserPrivate;
+import retrofit.Callback;
+import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class MainActivity extends Activity
@@ -50,15 +54,6 @@ public class MainActivity extends Activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		apiToken = CredentialsHandler.getToken(this);
-		if (apiToken == null)
-		{
-			Intent intent = new Intent(this, MainActivity.class);
-			startActivity(intent);
-			finish();
-		}
-
-		spotify = SpotifyUtils.getInstance(apiToken);
 		main = this;
 
 		initSearchbar();
@@ -66,6 +61,21 @@ public class MainActivity extends Activity
 		searchResults = findViewById(R.id.search_results);
 		searchResults.setLayoutManager(new LinearLayoutManager(this));
 		searchResults.setHasFixedSize(true);
+
+		spotify.getMe(new Callback<UserPrivate>()
+		{
+			@Override
+			public void success(UserPrivate userPrivate, Response response)
+			{
+				Toast.makeText(main, userPrivate.display_name, Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public void failure(RetrofitError error)
+			{
+
+			}
+		});
 	}
 
 	@Override
@@ -80,6 +90,7 @@ public class MainActivity extends Activity
 					public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
 					{
 						spotifyAppRemote = mSpotifyAppRemote;
+
 						adapter = new SpotifyTrackAdapter(main, new SpotifyTrackAdapter.TrackSelectedListener()
 						{
 							@Override

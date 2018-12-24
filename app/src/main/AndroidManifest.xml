@@ -21,6 +21,7 @@
         <activity android:name=".MainActivity"/>
         <activity android:name=".PlayTrackActivity"/>
         <activity android:name=".PlaylistActivity"/>
+        <activity android:name=".RoomControlActivity"/>
     </application>
 
 </manifest>

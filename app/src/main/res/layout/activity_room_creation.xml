@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/roomIdentifier"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textSize="50sp"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/btnCreateRoom"
+        android:layout_width="190dp"
+        android:layout_height="45dp"
+        android:layout_centerInParent="true"
+        android:onClick="btnCreateRoom_onClick"
+        android:text="Create Room"
+        android:textSize="16sp"/>
+
+    <Button
+        android:id="@+id/btnJoinRoom"
+        android:layout_width="190dp"
+        android:layout_height="45dp"
+        android:layout_below="@id/btnCreateRoom"
+        android:layout_centerInParent="true"
+        android:onClick="btnJoinRoom_onClick"
+        android:text="Join Room"
+        android:textSize="16sp"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/connectedUsersView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnJoinRoom"
+        android:visibility="gone"/>
+
+</RelativeLayout>

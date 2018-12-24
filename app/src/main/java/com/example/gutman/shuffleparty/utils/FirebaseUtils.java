@@ -5,10 +5,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
 
+import com.example.gutman.shuffleparty.data.Room;
+import com.example.gutman.shuffleparty.data.User;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -29,6 +32,26 @@ public class FirebaseUtils
 	public static final String TRACK_URI_CHILD = "TrackUri";
 	public static final String IMAGE_URL_CHILD = "ImageUrl";
 
+	public static final FirebaseDatabase DATABASE = FirebaseDatabase.getInstance();
+	public static final DatabaseReference ROOM_REF = DATABASE.getReference().child("Rooms");
+	public static final DatabaseReference TRACK_REF = DATABASE.getReference().child("Tracks");
+
+	public static void createRoomToDatabase(Room room)
+	{
+		DatabaseReference ref = ROOM_REF.child(room.getIdentifier());
+		ref = ref.child("Users");
+
+		List<User> connectedUsers = room.getConnectedUsers();
+		User u0 = connectedUsers.get(0);
+		ref = ref.child(u0.getDisplayName());
+
+		//		DatabaseReference ref = ROOM_REF.child(identifier);
+		//		ref = ref.child("Users");
+		//		ref = ref.child("PyschoPenguin");
+		//		ref = ref.child("V1");
+		//		ref.setValue("Value1");
+	}
+
 	public static void saveTrackToDatabase(DatabaseReference ref, Track save)
 	{
 		ref = ref.child(save.name);
@@ -39,15 +62,18 @@ public class FirebaseUtils
 		ref.child(IMAGE_URL_CHILD).setValue(save.album.images.get(0).url);
 	}
 
-	public static Track getTrackFromDatabase(DatabaseReference ref, final String title) {
+	public static Track getTrackFromDatabase(DatabaseReference ref, final String title)
+	{
 		final Track value = new Track();
 		ref.addChildEventListener(new ChildEventListener()
 		{
 			@Override
 			public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
 			{
-				for (DataSnapshot ds : dataSnapshot.getChildren()) {
-					if (ds.getKey() == title) {
+				for (DataSnapshot ds : dataSnapshot.getChildren())
+				{
+					if (ds.getKey() == title)
+					{
 						String name = ds.getKey();
 						String artists = ds.child(ARTISTS_CHILD).getValue(String.class);
 						List<ArtistSimple> artistSimpleList = getAlbumArtists(artists);
@@ -107,20 +133,24 @@ public class FirebaseUtils
 		return joiner.join(names);
 	}
 
-	private static List<String> getAlbumArtistsSplit(String artists) {
+	private static List<String> getAlbumArtistsSplit(String artists)
+	{
 		List<String> individualArtists = Arrays.asList(artists.split(","));
 		List<String> individualArtistsTrimmed = new ArrayList<>();
-		for (int i = 0; i < individualArtists.size(); i++) {
+		for (int i = 0; i < individualArtists.size(); i++)
+		{
 			String current = individualArtists.get(i);
 			individualArtistsTrimmed.add(current.trim());
 		}
 		return individualArtistsTrimmed;
 	}
 
-	public static List<ArtistSimple> getAlbumArtists(String artists) {
+	public static List<ArtistSimple> getAlbumArtists(String artists)
+	{
 		List<String> individualArtists = getAlbumArtistsSplit(artists);
 		List<ArtistSimple> artistSimpleList = new ArrayList<>();
-		for (String s : individualArtists) {
+		for (String s : individualArtists)
+		{
 			ArtistSimple current = new ArtistSimple();
 			current.name = s;
 			artistSimpleList.add(current);

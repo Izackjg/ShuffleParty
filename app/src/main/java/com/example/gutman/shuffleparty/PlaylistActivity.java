@@ -91,22 +91,16 @@ public class PlaylistActivity extends Activity
 			@Override
 			public void onSwipedDelete(int position)
 			{
-				// TODO: MOVE TO METHOD.
 				if (position > index || position < index)
 					return;
 				if (position == playlistItems.size() - 1)
-				{
 					index = 0;
-					current = playlistItems.get(index);
-					playerApi.play(current.uri);
-					updateUi(current);
-				} else
-				{
+				 else
 					index = position + 1;
-					current = playlistItems.get(index);
-					playerApi.play(current.uri);
-					updateUi(current);
-				}
+
+				current = playlistItems.get(index);
+				playerApi.play(current.uri);
+				updateUi(current);
 			}
 		}, icon));
 		touchHelper.attachToRecyclerView(playlistView);
