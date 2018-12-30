@@ -38,7 +38,8 @@ public class LoginActivity extends Activity
 
 		btnSpotifyLogin = findViewById(R.id.btnSpotifyLogin);
 
-		if (CredentialsHandler.getToken(this) != null) {
+		if (CredentialsHandler.getToken(this) != null)
+		{
 			Intent intent = new Intent(this, RoomControlActivity.class);
 			startActivity(intent);
 			finish();
@@ -58,12 +59,7 @@ public class LoginActivity extends Activity
 			{
 				case TOKEN:
 					ApiToken = response.getAccessToken();
-					int count = CredentialsHandler.getCount(this);
-					if (count == 1)
-						CredentialsHandler.setToken(this, ApiToken, 1, TimeUnit.HOURS);
-					else
-						CredentialsHandler.setToken(this, ApiToken, 365, TimeUnit.DAYS);
-
+					CredentialsHandler.setToken(this, ApiToken, 365, TimeUnit.DAYS);
 					Intent intent = new Intent(this, RoomControlActivity.class);
 					startActivity(intent);
 					finish();
@@ -77,7 +73,8 @@ public class LoginActivity extends Activity
 		}
 	}
 
-	public void btnSpotifyLogin_onClick(View v) {
+	public void btnSpotifyLogin_onClick(View v)
+	{
 		AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(SpotifyConstants.ClientID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
 		builder.setScopes(new String[]{"streaming", "user-read-private", "user-read-recently-played"});
 		AuthenticationRequest request = builder.build();

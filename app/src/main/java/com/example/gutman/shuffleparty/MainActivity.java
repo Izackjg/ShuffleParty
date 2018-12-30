@@ -13,6 +13,7 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
+import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
@@ -56,26 +57,14 @@ public class MainActivity extends Activity
 
 		main = this;
 
+		String apiToken = CredentialsHandler.getToken(this);
+		spotify = SpotifyUtils.getInstance(apiToken);
+
 		initSearchbar();
 
 		searchResults = findViewById(R.id.search_results);
 		searchResults.setLayoutManager(new LinearLayoutManager(this));
 		searchResults.setHasFixedSize(true);
-
-		spotify.getMe(new Callback<UserPrivate>()
-		{
-			@Override
-			public void success(UserPrivate userPrivate, Response response)
-			{
-				Toast.makeText(main, userPrivate.display_name, Toast.LENGTH_SHORT).show();
-			}
-
-			@Override
-			public void failure(RetrofitError error)
-			{
-
-			}
-		});
 	}
 
 	@Override
@@ -96,13 +85,15 @@ public class MainActivity extends Activity
 							@Override
 							public void onItemSelected(View itemView, Track item, int position)
 							{
+								FirebaseUtils.addTrackToDatabase(item);
+
 								playlistItems.add(item);
 
 								searchView.setQuery("", false);
 								adapter.clearData();
 								searchResults.setAdapter(adapter);
 
-								if (playlistItems.size() >= 3)
+								if (playlistItems.size() >= 10)
 								{
 									Intent playlistActivity = new Intent(main, PlaylistActivity.class);
 									playlistActivity.putExtra("pl", (Serializable) playlistItems);

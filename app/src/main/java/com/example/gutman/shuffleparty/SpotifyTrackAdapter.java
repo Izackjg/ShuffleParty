@@ -1,8 +1,10 @@
 package com.example.gutman.shuffleparty;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +38,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 
 	public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
 	{
+		private CardView rootCardView;
 		private final TextView title;
 		private final TextView artist;
 		private final TextView explicity;
@@ -45,6 +48,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		public ViewHolder(View itemView)
 		{
 			super(itemView);
+			rootCardView = itemView.findViewById(R.id.rootCardView);
 			title = itemView.findViewById(R.id.entityTitle);
 			artist = itemView.findViewById(R.id.entityArtist);
 			image = itemView.findViewById(R.id.entityImage);

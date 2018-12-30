@@ -95,7 +95,7 @@ public class PlaylistActivity extends Activity
 					return;
 				if (position == playlistItems.size() - 1)
 					index = 0;
-				 else
+				else
 					index = position + 1;
 
 				current = playlistItems.get(index);
@@ -111,7 +111,9 @@ public class PlaylistActivity extends Activity
 
 		tvTrackDur = findViewById(R.id.tvTrackDur);
 		tvTrackElap = findViewById(R.id.tvTrackElap);
+
 		tvTrackTitleArtists = findViewById(R.id.tvTrackTitleArtist);
+		tvTrackTitleArtists.setOnLongClickListener(textViewScrollListener);
 
 		progress = findViewById(R.id.seekbarProgress);
 		progress.setOnSeekBarChangeListener(seekBarChangeListener);
@@ -298,4 +300,27 @@ public class PlaylistActivity extends Activity
 
 		}
 	};
-}
+
+	private View.OnLongClickListener textViewScrollListener = new View.OnLongClickListener()
+	{
+		@Override
+		public boolean onLongClick(View v)
+		{
+			String name = seperateText(tvTrackTitleArtists.getText().toString(), SpotifyConstants.SEPERATOR)[0];
+			for (int i = 0; i < playlistItems.size(); i++)
+			{
+				if (playlistItems.get(i).name.equals(name))
+				{
+					playlistView.getLayoutManager().scrollToPosition(i);
+					return true;
+				}
+			}
+			return false;
+		}
+	};
+
+		private String[] seperateText(String text, String split)
+		{
+			return text.split(split);
+		}
+	}

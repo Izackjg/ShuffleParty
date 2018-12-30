@@ -1,9 +1,10 @@
 package com.example.gutman.shuffleparty.data;
 
-import com.spotify.protocol.types.Track;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.UserPrivate;
 
 public class Room
 {
@@ -11,7 +12,7 @@ public class Room
 
 	private String identifier;
 	private List<Track> playlistTracks;
-	private List<User> connectedUsers;
+	private List<UserPrivate> connectedUsers;
 
 	public Room() {
 		identifier = AlphabeticUtils.getRandomStringSequence(IDENTIFIER_LEN);
@@ -19,7 +20,7 @@ public class Room
 		connectedUsers = new ArrayList<>();
 	}
 
-	public Room(List<User> connectedUsers) {
+	public Room(List<UserPrivate> connectedUsers) {
 		identifier = AlphabeticUtils.getRandomStringSequence(IDENTIFIER_LEN);
 		this.playlistTracks = new ArrayList<>();
 		this.connectedUsers = connectedUsers;
@@ -29,11 +30,11 @@ public class Room
 		playlistTracks.add(t);
 	}
 
-	public void addUser(User u) {
+	public void addUser(UserPrivate u) {
 		connectedUsers.add(u);
 	}
 
-	public List<User> getConnectedUsers()
+	public List<UserPrivate> getConnectedUsers()
 	{
 		return connectedUsers;
 	}

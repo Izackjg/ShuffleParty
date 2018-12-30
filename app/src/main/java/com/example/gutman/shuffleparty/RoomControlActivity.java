@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.example.gutman.shuffleparty.data.AlphabeticUtils;
 import com.example.gutman.shuffleparty.data.Room;
 import com.example.gutman.shuffleparty.data.User;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
@@ -16,7 +15,6 @@ import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.google.firebase.FirebaseApp;
 
-import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,12 +28,16 @@ public class RoomControlActivity extends Activity
 {
 	private Button btnCreateRoom;
 	private Button btnJoinRoom;
+	private Button btnDebug;
+
 	private TextView tvRoomIdentifier;
 	private RecyclerView connectedUsersView;
 
 	private SpotifyService spotify;
 
 	private String apiToken;
+
+	private boolean DEBUG = true;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -55,23 +57,25 @@ public class RoomControlActivity extends Activity
 
 		spotify = SpotifyUtils.getInstance(apiToken);
 
+		btnDebug = findViewById(R.id.btnDebug);
+
 		btnCreateRoom = findViewById(R.id.btnCreateRoom);
 		btnJoinRoom = findViewById(R.id.btnJoinRoom);
 		tvRoomIdentifier = findViewById(R.id.roomIdentifier);
 		connectedUsersView = findViewById(R.id.connectedUsersView);
+		if (!DEBUG)
+			btnDebug.setVisibility(View.GONE);
 	}
 
 	public void btnCreateRoom_onClick(View view)
 	{
-		final List<User> userList = new ArrayList<>();
+		final List<UserPrivate> userList = new ArrayList<>();
 		spotify.getMe(new Callback<UserPrivate>()
 		{
 			@Override
 			public void success(UserPrivate userPrivate, Response response)
 			{
-				User u = new User(userPrivate);
-				userList.add(u);
-
+				userList.add(userPrivate);
 				Room r = new Room(userList);
 
 				tvRoomIdentifier.setText(r.getIdentifier());
@@ -90,5 +94,14 @@ public class RoomControlActivity extends Activity
 
 	public void btnJoinRoom_onClick(View view)
 	{
+	}
+
+	public void btnDebug_onClick(View view)
+	{
+		if (btnDebug.getVisibility() == View.VISIBLE){
+			Intent i = new Intent(this, MainActivity.class);
+			startActivity(i);
+			finish();
+		}
 	}
 }

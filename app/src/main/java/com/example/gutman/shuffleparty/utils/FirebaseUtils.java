@@ -1,6 +1,5 @@
 package com.example.gutman.shuffleparty.utils;
 
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
@@ -12,15 +11,14 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import kaaes.spotify.webapi.android.models.AlbumSimple;
 import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.UserPrivate;
 
 public class FirebaseUtils
 {
@@ -38,28 +36,19 @@ public class FirebaseUtils
 
 	public static void createRoomToDatabase(Room room)
 	{
-		DatabaseReference ref = ROOM_REF.child(room.getIdentifier());
-		ref = ref.child("Users");
+		DatabaseReference roomRef = ROOM_REF.child(room.getIdentifier());
+		DatabaseReference userRef = roomRef.child("users").push();
 
-		List<User> connectedUsers = room.getConnectedUsers();
-		User u0 = connectedUsers.get(0);
-		ref = ref.child(u0.getDisplayName());
-
-		//		DatabaseReference ref = ROOM_REF.child(identifier);
-		//		ref = ref.child("Users");
-		//		ref = ref.child("PyschoPenguin");
-		//		ref = ref.child("V1");
-		//		ref.setValue("Value1");
+		UserPrivate u1 = room.getConnectedUsers().get(0);
+		if (u1 != null)
+		{
+			userRef.setValue(u1);
+		}
 	}
 
-	public static void saveTrackToDatabase(DatabaseReference ref, Track save)
-	{
-		ref = ref.child(save.name);
-		ref.child(ARTISTS_CHILD).setValue(getAlbumArtists(save));
-		ref.child(EXPLICITY_CHILD).setValue(save.explicit);
-		ref.child(DURATION_MS_CHILD).setValue(save.duration_ms);
-		ref.child(TRACK_URI_CHILD).setValue(save.uri);
-		ref.child(IMAGE_URL_CHILD).setValue(save.album.images.get(0).url);
+	public static void addTrackToDatabase(Track t) {
+		DatabaseReference dataRef = TRACK_REF.push();
+		dataRef.setValue(t);
 	}
 
 	public static Track getTrackFromDatabase(DatabaseReference ref, final String title)

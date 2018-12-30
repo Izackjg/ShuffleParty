@@ -15,15 +15,12 @@ public class CredentialsHandler
 
 	private static final String ACCESS_TOKEN = "access_token";
 	private static final String EXPIRES_AT = "expires_at";
-	private static final String COUNT = "count";
 
 	private static final String DISPLAY_NAME = "display_name";
 	private static final String COUNTRY = "country";
 	private static final String URI = "user_uri";
 	private static final String IMAGE_URL = "img_url";
 	private static final String USER_ID = "user_id";
-
-	private static int count = 1;
 
 	public static void clearAll(Context context) {
 		Context appContext = context.getApplicationContext();
@@ -62,11 +59,8 @@ public class CredentialsHandler
 
 		editor.putString(ACCESS_TOKEN, token);
 		editor.putLong(EXPIRES_AT, expiresAt);
-		editor.putInt(COUNT, count);
 
 		editor.apply();
-
-		count += 1;
 	}
 
 	public static String getToken(Context context)
@@ -96,15 +90,6 @@ public class CredentialsHandler
 		userPrivate.id = sharedPref.getString(USER_ID, "");
 
 		return userPrivate;
-	}
-
-	public static int getCount(Context context) {
-		Context appContext = context.getApplicationContext();
-		SharedPreferences sharedPref = getSharedPref(appContext);
-
-		int count = sharedPref.getInt(COUNT, 0);
-
-		return count;
 	}
 
 	private static SharedPreferences getSharedPref(Context appContext)
