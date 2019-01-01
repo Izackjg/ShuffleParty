@@ -9,16 +9,18 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.gutman.shuffleparty.data.Room;
-import com.example.gutman.shuffleparty.data.User;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.google.firebase.FirebaseApp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.Playlist;
 import kaaes.spotify.webapi.android.models.UserPrivate;
 import retrofit.Callback;
 import retrofit.RetrofitError;
@@ -35,7 +37,7 @@ public class RoomControlActivity extends Activity
 
 	private SpotifyService spotify;
 
-	private String apiToken;
+	private String apiToken = null;
 
 	private boolean DEBUG = true;
 
@@ -57,7 +59,7 @@ public class RoomControlActivity extends Activity
 
 		spotify = SpotifyUtils.getInstance(apiToken);
 
-		btnDebug = findViewById(R.id.btnDebug);
+		btnDebug = findViewById(R.id.btnSearchActivity);
 
 		btnCreateRoom = findViewById(R.id.btnCreateRoom);
 		btnJoinRoom = findViewById(R.id.btnJoinRoom);
@@ -70,6 +72,7 @@ public class RoomControlActivity extends Activity
 	public void btnCreateRoom_onClick(View view)
 	{
 		final List<UserPrivate> userList = new ArrayList<>();
+
 		spotify.getMe(new Callback<UserPrivate>()
 		{
 			@Override
@@ -92,13 +95,22 @@ public class RoomControlActivity extends Activity
 		});
 	}
 
+	public void btnClearSp_onClick(View view)
+	{
+		CredentialsHandler.clearAll(this);
+		Intent i = new Intent(this, LoginActivity.class);
+		startActivity(i);
+		finish();
+	}
+
 	public void btnJoinRoom_onClick(View view)
 	{
 	}
 
-	public void btnDebug_onClick(View view)
+	public void btnSearchActivity(View view)
 	{
-		if (btnDebug.getVisibility() == View.VISIBLE){
+		if (btnDebug.getVisibility() == View.VISIBLE)
+		{
 			Intent i = new Intent(this, MainActivity.class);
 			startActivity(i);
 			finish();

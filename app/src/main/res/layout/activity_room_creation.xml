@@ -14,13 +14,13 @@
         android:visibility="gone"/>
 
     <Button
-        android:id="@+id/btnDebug"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:onClick="btnDebug_onClick"
-        android:text="d"
+        android:id="@+id/btnSearchActivity"
+        android:layout_width="190dp"
+        android:layout_height="45dp"
+        android:onClick="btnSearchActivity"
+        android:text="Search Activity"
         android:textSize="16sp"
-        android:layout_alignParentEnd="true"
+        android:layout_centerInParent="true"
         android:layout_above="@id/btnCreateRoom"/>
 
     <Button
@@ -42,11 +42,21 @@
         android:text="Join Room"
         android:textSize="16sp"/>
 
+    <Button
+        android:id="@+id/btnClearSP"
+        android:layout_width="190dp"
+        android:layout_height="45dp"
+        android:layout_below="@id/btnJoinRoom"
+        android:layout_centerInParent="true"
+        android:onClick="btnClearSp_onClick"
+        android:text="Clear SP"
+        android:textSize="16sp"/>
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/connectedUsersView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btnJoinRoom"
+        android:layout_below="@id/btnClearSP"
         android:visibility="gone"/>
 
 </RelativeLayout>

@@ -58,6 +58,11 @@ public class MainActivity extends Activity
 		main = this;
 
 		String apiToken = CredentialsHandler.getToken(this);
+		if (apiToken == null) {
+			Intent i = new Intent(this, LoginActivity.class);
+			startActivity(i);
+			finish();
+		}
 		spotify = SpotifyUtils.getInstance(apiToken);
 
 		initSearchbar();
@@ -93,7 +98,7 @@ public class MainActivity extends Activity
 								adapter.clearData();
 								searchResults.setAdapter(adapter);
 
-								if (playlistItems.size() >= 10)
+								if (playlistItems.size() >= 3)
 								{
 									Intent playlistActivity = new Intent(main, PlaylistActivity.class);
 									playlistActivity.putExtra("pl", (Serializable) playlistItems);

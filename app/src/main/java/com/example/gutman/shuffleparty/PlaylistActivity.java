@@ -116,7 +116,6 @@ public class PlaylistActivity extends Activity
 		tvTrackTitleArtists.setOnLongClickListener(textViewScrollListener);
 
 		progress = findViewById(R.id.seekbarProgress);
-		progress.setOnSeekBarChangeListener(seekBarChangeListener);
 	}
 
 	@Override
@@ -207,19 +206,34 @@ public class PlaylistActivity extends Activity
 					{
 						currentState = playerState;
 
-						int elapsed = (int) currentState.playbackPosition / 1000;
-						int dur = (int) currentState.track.duration / 1000;
+						int elapsedSeconds = (int)currentState.playbackPosition / 1000;
+						int durationSeconds = (int)current.duration_ms / 1000;
 
-						Log.d(main.getClass().getSimpleName(), "ELAPSED: " + elapsed + ": DUR: " + dur);
+						progress.setProgress(elapsedSeconds);
+						tvTrackElap.setText(SpotifyUtils.formatTimeDuration(elapsedSeconds));
 
-						if (elapsed >= dur - 3)
+						if (elapsedSeconds >= durationSeconds - 3)
 						{
-							Log.d(main.getClass().getSimpleName(), "END OF TRACK");
-							endOfTrack();
+							index += 1;
+							current = playlistItems.get(index);
+							playerApi.play(current.uri);
+							updateUi(current);
 						}
-
-						progress.setProgress(elapsed);
-						tvTrackElap.setText(SpotifyUtils.formatTimeDuration(elapsed));
+							//
+//						if (currentState.playbackPosition >= currentState.track.duration - 3)
+//						{
+//							endOfTrack();
+//						}
+//
+//						int elapsed = (int) currentState.playbackPosition / 1000;
+//						double elapsedMins = (double) elapsed / 60;
+//
+//						int dur = (int) currentState.track.duration / 1000;
+//						double durMins = (double) dur / 60;
+//
+//						double crossfade = 1 / 3 / 10;
+//
+//						double finalDur = durMins - crossfade;
 
 						initUpdate();
 					}
@@ -246,14 +260,14 @@ public class PlaylistActivity extends Activity
 		if (shuffle)
 			index = new Random().nextInt(playlistItems.size());
 		if (repeat)
-		{
 			index = t;
-		}
+
 		if (!shuffle && !repeat)
 		{
 			if (index == playlistItems.size() - 1)
-				index = -1;
-			index += 1;
+				index %= playlistItems.size();
+			else
+				index = (index % playlistItems.size()) + 1;
 		}
 
 		current = playlistItems.get(index);
@@ -276,31 +290,6 @@ public class PlaylistActivity extends Activity
 		}
 	};
 
-	private SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener()
-	{
-		@Override
-		public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
-		{
-			if (fromUser)
-			{
-				playerApi.seekTo(progress * 1000);
-				seekBar.setProgress(progress);
-			}
-		}
-
-		@Override
-		public void onStartTrackingTouch(SeekBar seekBar)
-		{
-
-		}
-
-		@Override
-		public void onStopTrackingTouch(SeekBar seekBar)
-		{
-
-		}
-	};
-
 	private View.OnLongClickListener textViewScrollListener = new View.OnLongClickListener()
 	{
 		@Override
@@ -319,8 +308,8 @@ public class PlaylistActivity extends Activity
 		}
 	};
 
-		private String[] seperateText(String text, String split)
-		{
-			return text.split(split);
-		}
+	private String[] seperateText(String text, String split)
+	{
+		return text.split(split);
 	}
+}
