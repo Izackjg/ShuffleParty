@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_search"
+        android:icon="@drawable/round_search"
+        android:title="@string/title_search" />
+
+    <item
+        android:id="@+id/navigation_playlist"
+        android:icon="@drawable/round_playlist_play"
+        android:title="@string/title_playlist" />
+
+    <item
+        android:id="@+id/navigation_users"
+        android:icon="@drawable/round_people"
+        android:title="@string/title_users" />
+
+</menu>

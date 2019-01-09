@@ -5,13 +5,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
 import android.widget.SearchView;
-import android.widget.Toast;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
@@ -29,12 +30,12 @@ import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.TracksPager;
-import kaaes.spotify.webapi.android.models.UserPrivate;
-import retrofit.Callback;
-import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class MainActivity extends AppCompatActivity
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class SearchFragment extends Fragment
 {
 	private ConnectionParams connectionParams;
 
@@ -45,84 +46,86 @@ public class MainActivity extends AppCompatActivity
 
 	private static String apiToken;
 
-	private Context main;
 	private SearchView searchView;
 	private RecyclerView searchResults;
 	private SpotifyTrackAdapter adapter;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState)
+	public SearchFragment()
 	{
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-
-		main = this;
-
-		String apiToken = CredentialsHandler.getToken(this);
-		if (apiToken == null) {
-			Intent i = new Intent(this, LoginActivity.class);
-			startActivity(i);
-			finish();
-		}
-		spotify = SpotifyUtils.getInstance(apiToken);
-
-		initSearchbar();
-
-		searchResults = findViewById(R.id.search_results);
-		searchResults.setLayoutManager(new LinearLayoutManager(this));
-		searchResults.setHasFixedSize(true);
+		// Required empty public constructor
 	}
 
 	@Override
-	protected void onStart()
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+							 Bundle savedInstanceState)
 	{
-		super.onStart();
 		connectionParams = SpotifyUtils.getParams();
 
-		SpotifyAppRemote.connect(this, connectionParams,
-				new Connector.ConnectionListener()
+		Context main = container.getContext();
+		final Activity mainActivity = getActivity();
+
+		SpotifyAppRemote.connect(main, connectionParams, new Connector.ConnectionListener()
+		{
+			@Override
+			public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
+			{
+				spotifyAppRemote = mSpotifyAppRemote;
+
+				adapter = new SpotifyTrackAdapter(mainActivity, new SpotifyTrackAdapter.TrackSelectedListener()
 				{
-					public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
+					@Override
+					public void onItemSelected(View itemView, Track item, int position)
 					{
-						spotifyAppRemote = mSpotifyAppRemote;
+						FirebaseUtils.addTrackToDatabase(item);
 
-						adapter = new SpotifyTrackAdapter(main, new SpotifyTrackAdapter.TrackSelectedListener()
+						playlistItems.add(item);
+
+						searchView.setQuery("", false);
+						adapter.clearData();
+						searchResults.setAdapter(adapter);
+
+						if (playlistItems.size() >= 3)
 						{
-							@Override
-							public void onItemSelected(View itemView, Track item, int position)
-							{
-								FirebaseUtils.addTrackToDatabase(item);
-
-								playlistItems.add(item);
-
-								searchView.setQuery("", false);
-								adapter.clearData();
-								searchResults.setAdapter(adapter);
-
-								if (playlistItems.size() >= 3)
-								{
-									Intent playlistActivity = new Intent(main, PlaylistActivity.class);
-									playlistActivity.putExtra("pl", (Serializable) playlistItems);
-									startActivity(playlistActivity);
-								}
-							}
-						});
-					}
-
-					public void onFailure(Throwable throwable)
-					{
-						Log.e("MyActivity", throwable.getMessage(), throwable);
+							Intent fragmentActivity = new Intent(mainActivity, FragmentActivity.class);
+							fragmentActivity.putExtra("pl", (Serializable) playlistItems);
+							startActivity(fragmentActivity);
+						}
 					}
 				});
+			}
+
+			@Override
+			public void onFailure(Throwable throwable)
+			{
+
+			}
+		});
+
+		View view = inflater.inflate(R.layout.fragment_search, container, false);
+
+		apiToken = CredentialsHandler.getToken(getActivity());
+		if (apiToken == null) {
+			Intent i = new Intent(main, LoginActivity.class);
+			startActivity(i);
+		}
+
+		spotify = SpotifyUtils.getInstance(apiToken);
+
+		initSearchbar(view);
+
+		searchResults = view.findViewById(R.id.frag_search_results);
+		searchResults.setLayoutManager(new LinearLayoutManager(mainActivity));
+		searchResults.setHasFixedSize(true);
+
+		return view;
 	}
 
-	private void initSearchbar()
-	{
-		searchView = findViewById(R.id.search_view);
+	private void initSearchbar(View v) {
+		searchView = v.findViewById(R.id.frag_search_view);
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener()
 		{
 			@Override
-			public boolean onQueryTextSubmit(final String query)
+			public boolean onQueryTextSubmit(String query)
 			{
 				if (adapter.getItemCount() != 0)
 				{
@@ -138,13 +141,12 @@ public class MainActivity extends AppCompatActivity
 					@Override
 					public void failure(SpotifyError spotifyError)
 					{
-						Log.e(main.getClass().getSimpleName(), spotifyError.getErrorDetails().toString());
 					}
 
 					@Override
 					public void success(TracksPager tracksPager, Response response)
 					{
-						adapter.addData(tracksPager.tracks.items);
+						adapter.setData(tracksPager.tracks.items);
 						searchResults.setAdapter(adapter);
 					}
 				});
@@ -158,4 +160,5 @@ public class MainActivity extends AppCompatActivity
 			}
 		});
 	}
+
 }

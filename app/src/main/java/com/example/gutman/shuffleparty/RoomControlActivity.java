@@ -3,6 +3,7 @@ package com.example.gutman.shuffleparty;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
@@ -26,7 +27,7 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class RoomControlActivity extends Activity
+public class RoomControlActivity extends AppCompatActivity
 {
 	private Button btnCreateRoom;
 	private Button btnJoinRoom;
@@ -111,7 +112,7 @@ public class RoomControlActivity extends Activity
 	{
 		if (btnDebug.getVisibility() == View.VISIBLE)
 		{
-			Intent i = new Intent(this, MainActivity.class);
+			Intent i = new Intent(this, FragmentActivity.class);
 			startActivity(i);
 			finish();
 		}
