@@ -243,7 +243,7 @@ public class PlaylistFragment extends Fragment
 	}
 
 	private void setupRecyclerViewDecor(){
-		Drawable icon = ContextCompat.getDrawable(getActivity(), R.drawable.round_delete);
+		Drawable icon = ContextCompat.getDrawable(main, R.drawable.round_delete);
 		ItemTouchHelper touchHelper = new ItemTouchHelper(new SwipeDeleteCallback(trackAdapter, new SwipeDeleteCallback.TrackSwipedListener()
 		{
 			@Override

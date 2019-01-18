@@ -57,6 +57,8 @@ public class FirebaseUtils
 		return ROOM_REF.child(identifer).child("tracks");
 	}
 
+	// TODO: ADD A PARAMETER TO THIS - DATABASEREF
+	// TODO: THEN ADD THE LISTENER TO THE REF AND USE THAT IN THE PLAYLISTFRAGMENT. HAVING IT RETURN THE LIST.
 	public static List<Track> getTracksFromDatabase(String identifer)
 	{
 		final List<Track> trackList = new ArrayList<>();
@@ -81,6 +83,11 @@ public class FirebaseUtils
 		});
 
 		return trackList;
+	}
+
+	public static void deleteRoomFromDatabase(String identifer) {
+		DatabaseReference ref = ROOM_REF.child(identifer);
+		ref.removeValue();
 	}
 
 	private static String getAlbumArtists(Track item)

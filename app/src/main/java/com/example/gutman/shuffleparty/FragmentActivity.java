@@ -9,6 +9,9 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
+import com.example.gutman.shuffleparty.utils.FirebaseUtils;
+import com.spotify.android.appremote.api.SpotifyAppRemote;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -17,10 +20,8 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class FragmentActivity extends AppCompatActivity
 {
-
 	private BottomNavigationView navView;
-	private List<Track> playlistItems = null;
-	private String roomIdentifier = "";
+	private String roomIdentifier;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -31,27 +32,18 @@ public class FragmentActivity extends AppCompatActivity
 		navView = findViewById(R.id.navigation);
 		navView.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener);
 
-		loadFragment(new PlaylistFragment());
-
-		boolean openPlaylistFragment = getIntent().getBooleanExtra("open", false);
 		roomIdentifier = getIntent().getStringExtra("ident");
 
 		Bundle b = new Bundle();
 		b.putString("ident", roomIdentifier);
 
-		if (b.getString("ident") != null) {
+		if (b.getString("ident") != null)
+		{
 			Fragment homeFragment = new HomeFragment();
 			homeFragment.setArguments(b);
 			navView.setSelectedItemId(R.id.navigation_home);
 			loadFragment(homeFragment);
 		}
-
-//		if (openPlaylistFragment) {
-//			Fragment playlistFragment = new PlaylistFragment();
-//			playlistFragment.setArguments(b);
-//			navView.setSelectedItemId(R.id.navigation_playlist);
-//			loadFragment(playlistFragment);
-//		}
 	}
 
 	private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener =
@@ -104,6 +96,7 @@ public class FragmentActivity extends AppCompatActivity
 							loadFragment(fragment);
 							return true;
 						case R.id.navigation_exit:
+							FirebaseUtils.deleteRoomFromDatabase(roomIdentifier);
 							Intent i = new Intent(getBaseContext(), RoomControlActivity.class);
 							startActivity(i);
 							finish();
