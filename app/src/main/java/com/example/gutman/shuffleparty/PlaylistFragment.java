@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -99,7 +100,7 @@ public class PlaylistFragment extends Fragment
 
 		playlistView = view.findViewById(R.id.frag_playlistItemsView);
 
-		playlistView.setLayoutManager(new LinearLayoutManager(getActivity()));
+		playlistView.setLayoutManager(new LinearLayoutManager(main));
 		playlistView.setHasFixedSize(true);
 
 		setupAppRemote();
@@ -117,7 +118,7 @@ public class PlaylistFragment extends Fragment
 			roomIdentifer = args.getString("ident");
 
 		setupRecyclerView();
-		setupRecyclerViewDecor();
+		//setupRecyclerViewDecor();
 	}
 
 	private void setupAppRemote(){

@@ -2,12 +2,9 @@ package com.example.gutman.shuffleparty.utils;
 
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
 
 import com.example.gutman.shuffleparty.data.Room;
-import com.example.gutman.shuffleparty.data.User;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -55,6 +52,10 @@ public class FirebaseUtils
 
 	public static DatabaseReference getCurrentRoomTrackReference(String identifer) {
 		return ROOM_REF.child(identifer).child("tracks");
+	}
+
+	public static DatabaseReference getCurrentRoomUsersReference(String identifier) {
+		return ROOM_REF.child(identifier).child("users");
 	}
 
 	// TODO: ADD A PARAMETER TO THIS - DATABASEREF

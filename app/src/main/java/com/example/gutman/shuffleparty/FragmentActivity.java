@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
@@ -42,7 +43,7 @@ public class FragmentActivity extends AppCompatActivity
 			Fragment homeFragment = new HomeFragment();
 			homeFragment.setArguments(b);
 			navView.setSelectedItemId(R.id.navigation_home);
-			loadFragment(homeFragment);
+			addFragment(homeFragment);
 		}
 	}
 
@@ -109,8 +110,20 @@ public class FragmentActivity extends AppCompatActivity
 
 	private void loadFragment(Fragment f)
 	{
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		FragmentManager fm = getSupportFragmentManager();
+		FragmentTransaction transaction = fm.beginTransaction();
+
 		transaction.replace(R.id.frame_container, f);
+		transaction.addToBackStack(null);
+		transaction.commit();
+	}
+
+	private void addFragment(Fragment f)
+	{
+		FragmentManager fm = getSupportFragmentManager();
+		FragmentTransaction transaction = fm.beginTransaction();
+
+		transaction.add(R.id.frame_container, f);
 		transaction.addToBackStack(null);
 		transaction.commit();
 	}

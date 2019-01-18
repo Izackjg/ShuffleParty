@@ -1,11 +1,8 @@
 package com.example.gutman.shuffleparty;
 
 import android.content.Context;
-import android.content.Intent;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +16,6 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 
@@ -49,7 +45,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		public ViewHolder(View itemView)
 		{
 			super(itemView);
-			rootCardView = itemView.findViewById(R.id.rootCardView);
+			rootCardView = itemView.findViewById(R.id.itemRootCardView);
 			title = itemView.findViewById(R.id.entityTitle);
 			artist = itemView.findViewById(R.id.entityArtist);
 			image = itemView.findViewById(R.id.entityImage);
@@ -105,7 +101,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
 	{
-		View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, false);
+		View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.spotify_list_item, parent, false);
 		return new ViewHolder(v);
 	}
 

@@ -77,7 +77,7 @@ public class LoginActivity extends AppCompatActivity
 	public void btnSpotifyLogin_onClick(View v)
 	{
 		AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(SpotifyConstants.ClientID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
-		builder.setScopes(new String[]{"streaming", "user-read-private", "user-read-recently-played"});
+		builder.setScopes(new String[]{"streaming", "user-read-private", "user-read-recently-played", "user-modify-playback-state", "app-remote-control"});
 		AuthenticationRequest request = builder.build();
 
 		AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);

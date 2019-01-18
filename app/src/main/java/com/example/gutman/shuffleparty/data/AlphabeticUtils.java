@@ -15,7 +15,7 @@ public class AlphabeticUtils
 
 		// Returns number between 0 and 1.
 		double chance = Math.random();
-		if (chance <= 0.03)
+		if (chance <= 0.01)
 			return "PY5CH0";
 
 		StringBuilder stringBuilder = new StringBuilder(len);
