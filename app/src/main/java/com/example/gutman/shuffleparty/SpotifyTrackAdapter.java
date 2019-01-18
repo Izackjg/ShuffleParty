@@ -2,6 +2,7 @@ package com.example.gutman.shuffleparty;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
@@ -62,8 +63,8 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 			if (itemSelectedListener == null)
 				return;
 
-			notifyItemChanged(getLayoutPosition());
 			index = getLayoutPosition();
+			notifyItemChanged(index);
 			itemSelectedListener.onItemSelected(v, items.get(getAdapterPosition()), index);
 		}
 	}
@@ -83,12 +84,6 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	public void clearData()
 	{
 		items.clear();
-	}
-
-	public void addItem(Track item)
-	{
-		this.items.add(item);
-		notifyDataSetChanged();
 	}
 
 	public void addData(List<Track> items)
@@ -115,7 +110,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	}
 
 	@Override
-	public void onBindViewHolder(ViewHolder holder, int position)
+	public void onBindViewHolder(ViewHolder holder, final int position)
 	{
 		Track item = items.get(position);
 

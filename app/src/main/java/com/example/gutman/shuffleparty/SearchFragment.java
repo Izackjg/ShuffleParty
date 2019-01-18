@@ -63,6 +63,10 @@ public class SearchFragment extends Fragment
 	{
 		super.onStart();
 
+		// Use this method to do the checking so I'm able to use final.
+		// Meaning I can only set this value once, so I can set it to null or the roomIdentifer value.
+		final String roomIdentifer = getRoomIdentifer();
+
 		connectionParams = SpotifyUtils.getParams();
 
 		SpotifyAppRemote.connect(main, connectionParams, new Connector.ConnectionListener()
@@ -77,7 +81,8 @@ public class SearchFragment extends Fragment
 					@Override
 					public void onItemSelected(View itemView, Track item, int position)
 					{
-						FirebaseUtils.addTrackToDatabase(item);
+						if (roomIdentifer != null)
+							FirebaseUtils.addTrackToDatabase(roomIdentifer, item);
 
 						playlistItems.add(item);
 
@@ -85,12 +90,13 @@ public class SearchFragment extends Fragment
 						adapter.clearData();
 						searchResults.setAdapter(adapter);
 
-						if (playlistItems.size() >= 3)
-						{
-							Intent fragmentActivity = new Intent(mainActivity, FragmentActivity.class);
-							fragmentActivity.putExtra("pl", (Serializable) playlistItems);
-							startActivity(fragmentActivity);
-						}
+//						if (playlistItems.size() >= 3)
+//						{
+//							Intent fragmentActivity = new Intent(mainActivity, FragmentActivity.class);
+//							fragmentActivity.putExtra("open", true);
+//							fragmentActivity.putExtra("ident", roomIdentifer);
+//							startActivity(fragmentActivity);
+//						}
 					}
 				});
 			}
@@ -168,6 +174,14 @@ public class SearchFragment extends Fragment
 				return false;
 			}
 		});
+	}
+
+	private String getRoomIdentifer(){
+		Bundle b = getArguments();
+		if (b != null){
+			return b.getString("ident");
+		}
+		return null;
 	}
 
 }

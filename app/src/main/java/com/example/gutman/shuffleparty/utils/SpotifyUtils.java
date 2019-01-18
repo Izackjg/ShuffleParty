@@ -3,6 +3,7 @@ package com.example.gutman.shuffleparty.utils;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
 
 import com.spotify.android.appremote.api.ConnectionParams;
+import com.spotify.protocol.types.Artist;
 
 import java.util.ArrayList;
 import java.util.Arrays;

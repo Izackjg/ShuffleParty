@@ -1,5 +1,6 @@
 package com.example.gutman.shuffleparty.utils;
 
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
@@ -11,6 +12,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +34,6 @@ public class FirebaseUtils
 
 	public static final FirebaseDatabase DATABASE = FirebaseDatabase.getInstance();
 	public static final DatabaseReference ROOM_REF = DATABASE.getReference().child("Rooms");
-	public static final DatabaseReference TRACK_REF = DATABASE.getReference().child("Tracks");
 
 	public static void createRoomToDatabase(Room room)
 	{
@@ -46,59 +47,30 @@ public class FirebaseUtils
 		}
 	}
 
-	public static void addTrackToDatabase(Track t) {
-		DatabaseReference dataRef = TRACK_REF.push();
-		dataRef.setValue(t);
+	public static void addTrackToDatabase(String identifier, Track t)
+	{
+		DatabaseReference currentRoomRef = ROOM_REF.child(identifier);
+		currentRoomRef.child("tracks").push().setValue(t);
 	}
 
-	public static Track getTrackFromDatabase(DatabaseReference ref, final String title)
+	public static DatabaseReference getCurrentRoomTrackReference(String identifer) {
+		return ROOM_REF.child(identifer).child("tracks");
+	}
+
+	public static List<Track> getTracksFromDatabase(String identifer)
 	{
-		final Track value = new Track();
-		ref.addChildEventListener(new ChildEventListener()
+		final List<Track> trackList = new ArrayList<>();
+
+		DatabaseReference currentRoomRef = ROOM_REF.child(identifer).child("tracks");
+		currentRoomRef.addValueEventListener(new ValueEventListener()
 		{
 			@Override
-			public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
+			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
 			{
-				for (DataSnapshot ds : dataSnapshot.getChildren())
-				{
-					if (ds.getKey() == title)
-					{
-						String name = ds.getKey();
-						String artists = ds.child(ARTISTS_CHILD).getValue(String.class);
-						List<ArtistSimple> artistSimpleList = getAlbumArtists(artists);
-
-						String imageUrl = ds.child(IMAGE_URL_CHILD).getValue(String.class);
-						String trackUri = ds.child(TRACK_URI_CHILD).getValue(String.class);
-
-						long trackDurMs = ds.child(DURATION_MS_CHILD).getValue(Long.class);
-						boolean explicit = ds.child(EXPLICITY_CHILD).getValue(Boolean.class);
-
-						value.name = name;
-						value.artists = artistSimpleList;
-						value.album.images.get(0).url = imageUrl;
-						value.uri = trackUri;
-						value.duration_ms = trackDurMs;
-						value.explicit = explicit;
-					}
+				for (DataSnapshot ds : dataSnapshot.getChildren()) {
+					Track t = ds.getValue(Track.class);
+					trackList.add(t);
 				}
-			}
-
-			@Override
-			public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
-			{
-
-			}
-
-			@Override
-			public void onChildRemoved(@NonNull DataSnapshot dataSnapshot)
-			{
-
-			}
-
-			@Override
-			public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
-			{
-
 			}
 
 			@Override
@@ -108,7 +80,7 @@ public class FirebaseUtils
 			}
 		});
 
-		return value;
+		return trackList;
 	}
 
 	private static String getAlbumArtists(Track item)

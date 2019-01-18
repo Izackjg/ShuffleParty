@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity
 							@Override
 							public void onItemSelected(View itemView, Track item, int position)
 							{
-								FirebaseUtils.addTrackToDatabase(item);
+								//FirebaseUtils.addTrackToDatabase(item);
 
 								playlistItems.add(item);
 

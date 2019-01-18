@@ -33,30 +33,25 @@ public class FragmentActivity extends AppCompatActivity
 
 		loadFragment(new PlaylistFragment());
 
-		playlistItems = (List<Track>) getIntent().getSerializableExtra("pl");
+		boolean openPlaylistFragment = getIntent().getBooleanExtra("open", false);
 		roomIdentifier = getIntent().getStringExtra("ident");
 
-		if (roomIdentifier != null || !roomIdentifier.equals("")) {
-			Bundle b = new Bundle();
-			b.putString("ident", roomIdentifier);
+		Bundle b = new Bundle();
+		b.putString("ident", roomIdentifier);
+
+		if (b.getString("ident") != null) {
 			Fragment homeFragment = new HomeFragment();
 			homeFragment.setArguments(b);
-
 			navView.setSelectedItemId(R.id.navigation_home);
 			loadFragment(homeFragment);
 		}
 
-		if (playlistItems != null)
-		{
-			Bundle b = new Bundle();
-			b.putSerializable("pl", (Serializable) playlistItems);
-			Fragment playlistFragment = new PlaylistFragment();
-			playlistFragment.setArguments(b);
-
-			navView.setSelectedItemId(R.id.navigation_playlist);
-
-			loadFragment(playlistFragment);
-		}
+//		if (openPlaylistFragment) {
+//			Fragment playlistFragment = new PlaylistFragment();
+//			playlistFragment.setArguments(b);
+//			navView.setSelectedItemId(R.id.navigation_playlist);
+//			loadFragment(playlistFragment);
+//		}
 	}
 
 	private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener =
@@ -68,12 +63,17 @@ public class FragmentActivity extends AppCompatActivity
 					Fragment fragment;
 					Fragment current = getSupportFragmentManager().findFragmentById(R.id.frame_container);
 
+					Bundle b = new Bundle();
+					b.putString("ident", roomIdentifier);
+
 					switch (item.getItemId())
 					{
 						case R.id.navigation_home:
 							if (current instanceof HomeFragment)
 								return false;
+
 							fragment = new HomeFragment();
+							fragment.setArguments(b);
 							loadFragment(fragment);
 							return true;
 
@@ -82,6 +82,7 @@ public class FragmentActivity extends AppCompatActivity
 								return false;
 
 							fragment = new SearchFragment();
+							fragment.setArguments(b);
 							loadFragment(fragment);
 							return true;
 
@@ -90,6 +91,7 @@ public class FragmentActivity extends AppCompatActivity
 								return false;
 
 							fragment = new PlaylistFragment();
+							fragment.setArguments(b);
 							loadFragment(fragment);
 							return true;
 
@@ -98,6 +100,7 @@ public class FragmentActivity extends AppCompatActivity
 								return false;
 
 							fragment = new UsersFragment();
+							fragment.setArguments(b);
 							loadFragment(fragment);
 							return true;
 						case R.id.navigation_exit:
