@@ -123,19 +123,4 @@ public class SwipeDeleteCallback extends ItemTouchHelper.SimpleCallback
 		background.draw(c);
 		icon.draw(c);
 	}
-
-	public int getDeletePos()
-	{
-		return deletePos;
-	}
-
-	public SpotifyTrackAdapter getAdapter()
-	{
-		return adapter;
-	}
-
-	public void setSwipedListener(TrackSwipedListener swipedListener)
-	{
-		this.swipedListener = swipedListener;
-	}
 }

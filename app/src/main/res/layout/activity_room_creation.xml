@@ -2,27 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-    android:background="@color/white">
-
-    <TextView
-        android:id="@+id/roomIdentifier"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:gravity="center"
-        android:maxLines="1"
-        android:textSize="50sp"
-        android:visibility="gone"/>
-
-    <Button
-        android:id="@+id/btnSearchActivity"
-        android:layout_width="190dp"
-        android:layout_height="45dp"
-        android:onClick="btnSearchActivity"
-        android:text="Search Activity"
-        android:textSize="16sp"
-        android:layout_centerInParent="true"
-        android:layout_above="@id/btnCreateRoom"/>
+                android:background="@color/white"
+                android:orientation="vertical">
 
     <Button
         android:id="@+id/btnCreateRoom"

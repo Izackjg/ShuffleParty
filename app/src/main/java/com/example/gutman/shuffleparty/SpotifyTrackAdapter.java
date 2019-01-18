@@ -147,6 +147,9 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	@Override
 	public int getItemCount()
 	{
+		if (items == null)
+			return 0;
+
 		return items.size();
 	}
 }

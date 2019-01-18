@@ -1,6 +1,5 @@
 package com.example.gutman.shuffleparty;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -16,12 +15,9 @@ import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.google.firebase.FirebaseApp;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Playlist;
 import kaaes.spotify.webapi.android.models.UserPrivate;
 import retrofit.Callback;
 import retrofit.RetrofitError;
@@ -33,7 +29,6 @@ public class RoomControlActivity extends AppCompatActivity
 	private Button btnJoinRoom;
 	private Button btnDebug;
 
-	private TextView tvRoomIdentifier;
 	private RecyclerView connectedUsersView;
 
 	private SpotifyService spotify;
@@ -60,11 +55,8 @@ public class RoomControlActivity extends AppCompatActivity
 
 		spotify = SpotifyUtils.getInstance(apiToken);
 
-		btnDebug = findViewById(R.id.btnSearchActivity);
-
 		btnCreateRoom = findViewById(R.id.btnCreateRoom);
 		btnJoinRoom = findViewById(R.id.btnJoinRoom);
-		tvRoomIdentifier = findViewById(R.id.roomIdentifier);
 		connectedUsersView = findViewById(R.id.connectedUsersView);
 		if (!DEBUG)
 			btnDebug.setVisibility(View.GONE);
@@ -82,10 +74,11 @@ public class RoomControlActivity extends AppCompatActivity
 				userList.add(userPrivate);
 				Room r = new Room(userList);
 
-				tvRoomIdentifier.setText(r.getIdentifier());
-				tvRoomIdentifier.setVisibility(View.VISIBLE);
-
 				FirebaseUtils.createRoomToDatabase(r);
+
+				Intent i = new Intent(getBaseContext(), FragmentActivity.class);
+				i.putExtra("ident", r.getIdentifier());
+				startActivity(i);
 			}
 
 			@Override
@@ -106,15 +99,5 @@ public class RoomControlActivity extends AppCompatActivity
 
 	public void btnJoinRoom_onClick(View view)
 	{
-	}
-
-	public void btnSearchActivity(View view)
-	{
-		if (btnDebug.getVisibility() == View.VISIBLE)
-		{
-			Intent i = new Intent(this, FragmentActivity.class);
-			startActivity(i);
-			finish();
-		}
 	}
 }

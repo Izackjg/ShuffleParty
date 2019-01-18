@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/round_home"
+        android:title="@string/title_home" />
+
+    <item
         android:id="@+id/navigation_search"
         android:icon="@drawable/round_search"
         android:title="@string/title_search" />
@@ -15,5 +20,10 @@
         android:id="@+id/navigation_users"
         android:icon="@drawable/round_people"
         android:title="@string/title_users" />
+
+    <item
+        android:id="@+id/navigation_exit"
+        android:icon="@drawable/round_exit_to_app"
+        android:title="@string/title_exit" />
 
 </menu>

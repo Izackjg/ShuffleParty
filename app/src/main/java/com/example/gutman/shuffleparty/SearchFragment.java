@@ -37,6 +37,9 @@ import retrofit.client.Response;
  */
 public class SearchFragment extends Fragment
 {
+	private Context main;
+	private Activity mainActivity;
+
 	private ConnectionParams connectionParams;
 
 	private List<Track> playlistItems = new ArrayList<>();
@@ -56,13 +59,11 @@ public class SearchFragment extends Fragment
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-							 Bundle savedInstanceState)
+	public void onStart()
 	{
-		connectionParams = SpotifyUtils.getParams();
+		super.onStart();
 
-		Context main = container.getContext();
-		final Activity mainActivity = getActivity();
+		connectionParams = SpotifyUtils.getParams();
 
 		SpotifyAppRemote.connect(main, connectionParams, new Connector.ConnectionListener()
 		{
@@ -100,10 +101,18 @@ public class SearchFragment extends Fragment
 
 			}
 		});
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+							 Bundle savedInstanceState)
+	{
+		main = container.getContext();
+		mainActivity = getActivity();
 
 		View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-		apiToken = CredentialsHandler.getToken(getActivity());
+		apiToken = CredentialsHandler.getToken(mainActivity);
 		if (apiToken == null) {
 			Intent i = new Intent(main, LoginActivity.class);
 			startActivity(i);

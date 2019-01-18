@@ -19,7 +19,6 @@ public class CredentialsHandler
 	private static final String DISPLAY_NAME = "display_name";
 	private static final String COUNTRY = "country";
 	private static final String URI = "user_uri";
-	private static final String IMAGE_URL = "img_url";
 	private static final String USER_ID = "user_id";
 
 	public static void clearAll(Context context) {

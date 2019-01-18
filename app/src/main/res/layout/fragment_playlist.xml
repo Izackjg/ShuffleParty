@@ -3,13 +3,97 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context=".PlaylistFragment"
-    android:background="@color/white">
+             android:background="@color/white"
+             tools:context=".PlaylistFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="PLAYLIST"/>
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/frag_playlistItemsView"
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:scrollbars="vertical"/>
+
+        <TextView
+            android:id="@+id/frag_tvTrackTitleArtist"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_below="@id/frag_playlistItemsView"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <RelativeLayout
+            android:id="@+id/frag_playerLayout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="60dp"
+            android:elevation="8dp"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/frag_btnPlayPause"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_centerHorizontal="true"
+                android:layout_gravity="center"
+                android:background="@drawable/round_button_pause"/>
+            <!--android:onClick="btnPlayPause_onClick"/>-->
+
+            <Button
+                android:id="@+id/frag_btnRepeat"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentEnd="true"
+                android:layout_gravity="center"
+                android:layout_marginEnd="60dp"
+                android:background="@drawable/round_repeat"/>
+            <!--android:onClick="btnRepeat_onClick"/>-->
+
+            <Button
+                android:id="@+id/frag_btnShuffle"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentStart="true"
+                android:layout_gravity="center"
+                android:layout_marginStart="60dp"
+                android:background="@drawable/round_shuffle"/>
+            <!--android:onClick="btnShuffle_onClick"/>-->
+
+            <SeekBar
+                android:id="@+id/frag_seekbarProgress"
+                android:layout_width="250dp"
+                android:layout_height="30dp"
+                android:layout_below="@id/frag_btnPlayPause"
+                android:layout_centerInParent="true"
+                android:layout_centerHorizontal="true"/>
+
+            <TextView
+                android:id="@+id/frag_tvTrackDur"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:textColor="@color/colorPrimary"
+                android:layout_alignBottom="@id/frag_seekbarProgress"
+                android:layout_alignParentEnd="true"
+                android:layout_toEndOf="@id/frag_seekbarProgress"
+                android:gravity="center"/>
+
+            <TextView
+                android:id="@+id/frag_tvTrackElap"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:textColor="@color/colorPrimary"
+                android:layout_alignBottom="@id/frag_seekbarProgress"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/frag_seekbarProgress"
+                android:gravity="center"/>
+
+        </RelativeLayout>
+    </RelativeLayout>
 
 </FrameLayout>

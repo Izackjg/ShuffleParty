@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Shuffle Party</string>
+    <string name="title_home">Home</string>
+    <string name="title_exit">Exit</string>
     <string name="title_playlist">Playlist</string>
     <string name="title_search">Search</string>
     <string name="title_users">Users</string>

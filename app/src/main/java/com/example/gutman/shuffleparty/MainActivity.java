@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity
 		main = this;
 
 		String apiToken = CredentialsHandler.getToken(this);
-		if (apiToken == null) {
+		if (apiToken.equals("")) {
 			Intent i = new Intent(this, LoginActivity.class);
 			startActivity(i);
 			finish();
