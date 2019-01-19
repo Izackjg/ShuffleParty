@@ -1,16 +1,18 @@
 package com.example.gutman.shuffleparty.utils;
 
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
 
 import com.example.gutman.shuffleparty.data.Room;
+import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,14 +23,6 @@ import kaaes.spotify.webapi.android.models.UserPrivate;
 
 public class FirebaseUtils
 {
-	public static final String MAIN = "Tracks";
-	public static final String TITLE_CHILD = "Title";
-	public static final String ARTISTS_CHILD = "Artists";
-	public static final String EXPLICITY_CHILD = "Explicity";
-	public static final String DURATION_MS_CHILD = "DurationMs";
-	public static final String TRACK_URI_CHILD = "TrackUri";
-	public static final String IMAGE_URL_CHILD = "ImageUrl";
-
 	public static final FirebaseDatabase DATABASE = FirebaseDatabase.getInstance();
 	public static final DatabaseReference ROOM_REF = DATABASE.getReference().child("Rooms");
 
@@ -37,24 +31,33 @@ public class FirebaseUtils
 		DatabaseReference roomRef = ROOM_REF.child(room.getIdentifier());
 		DatabaseReference userRef = roomRef.child("users").push();
 
-		UserPrivate u1 = room.getConnectedUsers().get(0);
-		if (u1 != null)
+		for (UserPrivate u : room.getConnectedUsers())
 		{
-			userRef.setValue(u1);
+			if (u != null)
+				userRef.setValue(u);
 		}
+	}
+
+	public static void addUserToRoom(String identifier, UserPrivateExtension u) {
+		DatabaseReference currentRoomUserRef = getCurrentRoomUsersReference(identifier);
+		DatabaseReference pushedRef = currentRoomUserRef.push();
+
+		pushedRef.setValue(u);
 	}
 
 	public static void addTrackToDatabase(String identifier, Track t)
 	{
-		DatabaseReference currentRoomRef = ROOM_REF.child(identifier);
-		currentRoomRef.child("tracks").push().setValue(t);
+		DatabaseReference currentRoomTrackRef = getCurrentRoomTrackReference(identifier);
+		currentRoomTrackRef.push().setValue(t);
 	}
 
-	public static DatabaseReference getCurrentRoomTrackReference(String identifer) {
+	public static DatabaseReference getCurrentRoomTrackReference(String identifer)
+	{
 		return ROOM_REF.child(identifer).child("tracks");
 	}
 
-	public static DatabaseReference getCurrentRoomUsersReference(String identifier) {
+	public static DatabaseReference getCurrentRoomUsersReference(String identifier)
+	{
 		return ROOM_REF.child(identifier).child("users");
 	}
 
@@ -70,7 +73,8 @@ public class FirebaseUtils
 			@Override
 			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
 			{
-				for (DataSnapshot ds : dataSnapshot.getChildren()) {
+				for (DataSnapshot ds : dataSnapshot.getChildren())
+				{
 					Track t = ds.getValue(Track.class);
 					trackList.add(t);
 				}
@@ -86,7 +90,8 @@ public class FirebaseUtils
 		return trackList;
 	}
 
-	public static void deleteRoomFromDatabase(String identifer) {
+	public static void deleteRoomFromDatabase(String identifer)
+	{
 		DatabaseReference ref = ROOM_REF.child(identifer);
 		ref.removeValue();
 	}
@@ -101,30 +106,4 @@ public class FirebaseUtils
 		Joiner joiner = Joiner.on(", ");
 		return joiner.join(names);
 	}
-
-	private static List<String> getAlbumArtistsSplit(String artists)
-	{
-		List<String> individualArtists = Arrays.asList(artists.split(","));
-		List<String> individualArtistsTrimmed = new ArrayList<>();
-		for (int i = 0; i < individualArtists.size(); i++)
-		{
-			String current = individualArtists.get(i);
-			individualArtistsTrimmed.add(current.trim());
-		}
-		return individualArtistsTrimmed;
-	}
-
-	public static List<ArtistSimple> getAlbumArtists(String artists)
-	{
-		List<String> individualArtists = getAlbumArtistsSplit(artists);
-		List<ArtistSimple> artistSimpleList = new ArrayList<>();
-		for (String s : individualArtists)
-		{
-			ArtistSimple current = new ArtistSimple();
-			current.name = s;
-			artistSimpleList.add(current);
-		}
-		return artistSimpleList;
-	}
-
 }

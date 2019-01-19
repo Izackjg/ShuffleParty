@@ -19,13 +19,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
@@ -33,7 +36,9 @@ import com.spotify.android.appremote.api.PlayerApi;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.client.CallResult;
 import com.spotify.protocol.types.PlayerState;
+
 import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.UserPrivate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,20 +48,21 @@ import java.util.List;
  */
 public class PlaylistFragment extends Fragment
 {
+	private boolean admin = false;
+	private boolean paused;
+
 	private Context main;
 	private Activity mainActivity;
 
 	private List<Track> playlistItems;
 	private Track current;
 	private String roomIdentifer;
-	private int index;
+	private int index = 0;
 
 	private RecyclerView playlistView;
 	private SpotifyTrackAdapter trackAdapter;
 
 	private Button btnPlayPause;
-	private Button btnRepeat;
-	private Button btnShuffle;
 
 	private TextView tvTrackDur;
 	private TextView tvTrackElap;
@@ -75,7 +81,6 @@ public class PlaylistFragment extends Fragment
 		// Required empty public constructor
 	}
 
-
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState)
@@ -89,8 +94,7 @@ public class PlaylistFragment extends Fragment
 		View view = inflater.inflate(R.layout.fragment_playlist, container, false);
 
 		btnPlayPause = view.findViewById(R.id.frag_btnPlayPause);
-		btnRepeat = view.findViewById(R.id.frag_btnRepeat);
-		btnShuffle = view.findViewById(R.id.frag_btnShuffle);
+		btnPlayPause.setOnClickListener(btnPlayPauseClickListener);
 
 		tvTrackDur = view.findViewById(R.id.frag_tvTrackDur);
 		tvTrackElap = view.findViewById(R.id.frag_tvTrackElap);
@@ -117,11 +121,12 @@ public class PlaylistFragment extends Fragment
 		if (args != null)
 			roomIdentifer = args.getString("ident");
 
+		//setupAppRemote();
 		setupRecyclerView();
-		//setupRecyclerViewDecor();
 	}
 
-	private void setupAppRemote(){
+	private void setupAppRemote()
+	{
 		ConnectionParams params = SpotifyUtils.getParams();
 
 		SpotifyAppRemote.connect(main, params, new Connector.ConnectionListener()
@@ -132,7 +137,6 @@ public class PlaylistFragment extends Fragment
 				playerApi = mSpotifyAppRemote.getPlayerApi();
 				setupUpdateRunnable();
 
-				index = 0;
 				current = playlistItems.get(index);
 				int dur = (int) current.duration_ms / 1000;
 				setupUI(current);
@@ -167,20 +171,26 @@ public class PlaylistFragment extends Fragment
 					{
 						currentState = playerState;
 
-						int elapsedSeconds = (int)currentState.playbackPosition / 1000;
-						int durationSeconds = (int)currentState.track.duration / 1000;
+						paused = currentState.isPaused;
 
-						progress.setProgress(elapsedSeconds);
-						tvTrackElap.setText(SpotifyUtils.formatTimeDuration(elapsedSeconds));
+						// Convert to double from long so I can do some decimal math with them.
+						// Meaning, I can subtract decimal values for the track end logic.
+						double elapsedSeconds = (double) currentState.playbackPosition / 1000;
+						double durationSeconds = (double) current.duration_ms / 1000;
 
-						if (elapsedSeconds >= durationSeconds - 4)
+						progress.setProgress((int) elapsedSeconds);
+						tvTrackElap.setText(SpotifyUtils.formatTimeDuration((int) elapsedSeconds));
+
+						if (elapsedSeconds >= durationSeconds - 1.5)
 						{
+							if (index == playlistItems.size() - 1)
+								index = -1;
+
 							index += 1;
 							current = playlistItems.get(index);
-							playerApi.play(current.uri);
 							setupUI(current);
+							playerApi.play(current.uri);
 						}
-
 
 						setupUpdateRunnable();
 					}
@@ -190,7 +200,8 @@ public class PlaylistFragment extends Fragment
 		};
 	}
 
-	private void setupUI(Track newTrack) {
+	private void setupUI(Track newTrack)
+	{
 		int dur = (int) newTrack.duration_ms / 1000;
 		progress.setMax(dur);
 		tvTrackDur.setText(SpotifyUtils.formatTimeDuration(dur));
@@ -199,7 +210,8 @@ public class PlaylistFragment extends Fragment
 		tvTrackTitleArtists.setText(newTrack.name + SpotifyConstants.SEPERATOR + aritstsFormatted);
 	}
 
-	private void setupRecyclerView(){
+	private void setupRecyclerView()
+	{
 		playlistItems = new ArrayList<>();
 
 		// Get the database reference at the current connected room identifer.
@@ -208,42 +220,16 @@ public class PlaylistFragment extends Fragment
 		ref.addValueEventListener(valueEventListener);
 	}
 
-	// Has events about data changes at a location.
-	// In this specific case, the location is at the current connected room reference.
-	private ValueEventListener valueEventListener = new ValueEventListener()
+	private void setupAdapter()
 	{
-		@Override
-		public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-		{
-			// DataSnapshot is used everytime, containing data from a Firebase Database location.
-			// Any time you read Database data, I will receive the data as a DataSnapshot.
-
-			// For all the children in the DataSnapshot
-			for (DataSnapshot ds : dataSnapshot.getChildren()) {
-				// Get the value, and convert it from Object to a Spotify Track.
-				Track t = ds.getValue(Track.class);
-				// Add it to the playlistItems.
-				playlistItems.add(t);
-			}
-			// Setup the adapter.
-			setupAdapter();
-		}
-
-		@Override
-		public void onCancelled(@NonNull DatabaseError databaseError)
-		{
-
-		}
-	};
-
-	private void setupAdapter(){
 		trackAdapter = new SpotifyTrackAdapter(main, playlistItems);
 		trackAdapter.setItemSelectedListener(trackSelectedListener);
 		playlistView.setAdapter(trackAdapter);
 		setupRecyclerViewDecor();
 	}
 
-	private void setupRecyclerViewDecor(){
+	private void setupRecyclerViewDecor()
+	{
 		Drawable icon = ContextCompat.getDrawable(main, R.drawable.round_delete);
 		ItemTouchHelper touchHelper = new ItemTouchHelper(new SwipeDeleteCallback(trackAdapter, new SwipeDeleteCallback.TrackSwipedListener()
 		{
@@ -265,6 +251,35 @@ public class PlaylistFragment extends Fragment
 		touchHelper.attachToRecyclerView(playlistView);
 	}
 
+	// Has events about data changes at a location.
+	// In this specific case, the location is at the current connected room reference.
+	private ValueEventListener valueEventListener = new ValueEventListener()
+	{
+		@Override
+		public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+		{
+			// DataSnapshot is used everytime, containing data from a Firebase Database location.
+			// Any time you read Database data, I will receive the data as a DataSnapshot.
+
+			// For all the children in the DataSnapshot
+			for (DataSnapshot ds : dataSnapshot.getChildren())
+			{
+				// Get the value, and convert it from Object to a Spotify Track.
+				Track t = ds.getValue(Track.class);
+				// Add it to the playlistItems.
+				playlistItems.add(t);
+			}
+			// Setup the adapter.
+			setupAdapter();
+		}
+
+		@Override
+		public void onCancelled(@NonNull DatabaseError databaseError)
+		{
+
+		}
+	};
+
 	private SpotifyTrackAdapter.TrackSelectedListener trackSelectedListener =
 			new SpotifyTrackAdapter.TrackSelectedListener()
 			{
@@ -280,4 +295,22 @@ public class PlaylistFragment extends Fragment
 					playerApi.play(current.uri);
 				}
 			};
+
+	private View.OnClickListener btnPlayPauseClickListener = new View.OnClickListener()
+	{
+		@Override
+		public void onClick(View v)
+		{
+			//paused = !paused;
+			if (paused)
+			{
+				playerApi.resume();
+				btnPlayPause.setBackgroundResource(R.drawable.round_button_pause);
+			} else
+			{
+				playerApi.pause();
+				btnPlayPause.setBackgroundResource(R.drawable.round_button_play);
+			}
+		}
+	};
 }

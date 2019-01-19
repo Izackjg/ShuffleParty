@@ -33,12 +33,4 @@
         android:onClick="btnClearSp_onClick"
         android:text="Clear SP"
         android:textSize="16sp"/>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/connectedUsersView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btnClearSP"
-        android:visibility="gone"/>
-
 </RelativeLayout>

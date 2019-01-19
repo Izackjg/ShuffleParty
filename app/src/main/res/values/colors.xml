@@ -10,4 +10,5 @@
     <color name="explicityForeground">#2b2c2d</color>
     <color name="white">#ffffff</color>
     <color name="offsetWhite">#ffe4c0</color>
+    <color name="adminRed">#dc0209</color>
 </resources>

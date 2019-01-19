@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.gutman.shuffleparty.data.PermissionType;
+import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -20,6 +22,7 @@ class SpotifyUserAdapter extends RecyclerView.Adapter<SpotifyUserAdapter.ViewHol
 {
 	private Context context;
 	private List<UserPrivate> users;
+	private List<PermissionType> permissionTypes;
 
 	public class ViewHolder extends RecyclerView.ViewHolder
 	{
@@ -38,21 +41,11 @@ class SpotifyUserAdapter extends RecyclerView.Adapter<SpotifyUserAdapter.ViewHol
 		}
 	}
 
-	public SpotifyUserAdapter(Context context, List<UserPrivate> users)
+	public SpotifyUserAdapter(Context context, List<UserPrivate> users, List<PermissionType> permissionTypes)
 	{
 		this.context = context;
 		this.users = users;
-	}
-
-	public void clearData()
-	{
-		users.clear();
-	}
-
-	public void addData(List<UserPrivate> users)
-	{
-		this.users.addAll(users);
-		notifyDataSetChanged();
+		this.permissionTypes = permissionTypes;
 	}
 
 	public void setData(List<UserPrivate> users)
@@ -72,6 +65,10 @@ class SpotifyUserAdapter extends RecyclerView.Adapter<SpotifyUserAdapter.ViewHol
 	public void onBindViewHolder(ViewHolder holder, int position)
 	{
 		UserPrivate user = users.get(position);
+		PermissionType type = permissionTypes.get(position);
+
+		if (type == PermissionType.Admin)
+			holder.username.setTextColor(context.getResources().getColor(R.color.adminRed));
 
 		holder.username.setText("Username: " + user.display_name);
 		holder.country.setText("Country: " + user.country);

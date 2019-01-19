@@ -8,11 +8,13 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.gutman.shuffleparty.R;
+import com.example.gutman.shuffleparty.data.PermissionType;
+import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -22,7 +24,6 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.UserPrivate;
 
 /**
@@ -35,6 +36,7 @@ public class UsersFragment extends Fragment
 	private RecyclerView connectedUsersView;
 
 	private List<UserPrivate> users;
+	private List<PermissionType> permissionTypes;
 	private SpotifyUserAdapter userAdapter;
 
 	private String roomIdentifer;
@@ -55,7 +57,7 @@ public class UsersFragment extends Fragment
 		// Inflate the layout for this fragment
 		View view = inflater.inflate(R.layout.fragment_users, container, false);
 
-		connectedUsersView =view.findViewById(R.id.frag_user_list);
+		connectedUsersView = view.findViewById(R.id.frag_user_list);
 		connectedUsersView.setLayoutManager(new LinearLayoutManager(main));
 		connectedUsersView.setHasFixedSize(true);
 
@@ -70,11 +72,14 @@ public class UsersFragment extends Fragment
 		Bundle b = getArguments();
 		if (b != null)
 			roomIdentifer = b.getString("ident");
+
 		setupRecyclerView();
 	}
 
-	private void setupRecyclerView(){
+	private void setupRecyclerView()
+	{
 		users = new ArrayList<>();
+		permissionTypes = new ArrayList<>();
 
 		// Get the database reference at the current connected room identifer.
 		DatabaseReference ref = FirebaseUtils.getCurrentRoomUsersReference(roomIdentifer);
@@ -93,11 +98,15 @@ public class UsersFragment extends Fragment
 			// Any time you read Database data, I will receive the data as a DataSnapshot.
 
 			// For all the children in the DataSnapshot
-			for (DataSnapshot ds : dataSnapshot.getChildren()) {
-				// Get the value, and convert it from Object to a Spotify Track.
-				UserPrivate t = ds.getValue(UserPrivate.class);
-				// Add it to the playlistItems.
-				users.add(t);
+			for (DataSnapshot ds : dataSnapshot.getChildren())
+			{
+				// Get the PermissionType value, and convert it from Object to a PermissionType.
+				// Get the value, and convert it from Object to a Spotify UserPrivate class.
+				UserPrivate userPrivate = ds.child("user").getValue(UserPrivate.class);
+				PermissionType type = ds.child("permType").getValue(PermissionType.class);
+				// Add it to the playlistItems and permissionTypes respectively.
+				users.add(userPrivate);
+				permissionTypes.add(type);
 			}
 			// Setup the adapter.
 			setupAdapter();
@@ -110,8 +119,9 @@ public class UsersFragment extends Fragment
 		}
 	};
 
-	private void setupAdapter(){
-		userAdapter = new SpotifyUserAdapter(main, users);
+	private void setupAdapter()
+	{
+		userAdapter = new SpotifyUserAdapter(main, users, permissionTypes);
 		connectedUsersView.setAdapter(userAdapter);
 	}
 }

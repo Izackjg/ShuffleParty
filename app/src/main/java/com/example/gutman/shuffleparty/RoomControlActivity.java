@@ -2,17 +2,24 @@ package com.example.gutman.shuffleparty;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.gutman.shuffleparty.data.PermissionType;
 import com.example.gutman.shuffleparty.data.Room;
+import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,15 +34,12 @@ public class RoomControlActivity extends AppCompatActivity
 {
 	private Button btnCreateRoom;
 	private Button btnJoinRoom;
-	private Button btnDebug;
 
-	private RecyclerView connectedUsersView;
-
+	private UserPrivateExtension extension;
 	private SpotifyService spotify;
 
+	private boolean add = false;
 	private String apiToken = null;
-
-	private boolean DEBUG = true;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -57,9 +61,6 @@ public class RoomControlActivity extends AppCompatActivity
 
 		btnCreateRoom = findViewById(R.id.btnCreateRoom);
 		btnJoinRoom = findViewById(R.id.btnJoinRoom);
-		connectedUsersView = findViewById(R.id.connectedUsersView);
-		if (!DEBUG)
-			btnDebug.setVisibility(View.GONE);
 	}
 
 	public void btnCreateRoom_onClick(View view)
@@ -71,7 +72,14 @@ public class RoomControlActivity extends AppCompatActivity
 			@Override
 			public void success(UserPrivate userPrivate, Response response)
 			{
-				userList.add(userPrivate);
+				Parcel in = Parcel.obtain();
+				userPrivate.writeToParcel(in,0);
+
+				CredentialsHandler.setUserInfo(getBaseContext(), userPrivate.display_name);
+
+				extension = new UserPrivateExtension(userPrivate, PermissionType.Admin, in);
+
+				userList.add(extension);
 				Room r = new Room(userList);
 
 				FirebaseUtils.createRoomToDatabase(r);
@@ -89,15 +97,39 @@ public class RoomControlActivity extends AppCompatActivity
 		});
 	}
 
+	public void btnJoinRoom_onClick(View view)
+	{
+		if (extension == null)
+			Toast.makeText(this, "NULL", Toast.LENGTH_SHORT).show();
+		
+		final String tempIdentifier = "EYGMHD";
+		DatabaseReference ref = FirebaseUtils.ROOM_REF;
+		ref.addListenerForSingleValueEvent(new ValueEventListener()
+		{
+			@Override
+			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+			{
+				if (dataSnapshot.hasChild(tempIdentifier)){
+					add = true;
+				}
+			}
+
+			@Override
+			public void onCancelled(@NonNull DatabaseError databaseError)
+			{
+
+			}
+		});
+
+		if (add)
+			FirebaseUtils.addUserToRoom(tempIdentifier, extension);
+	}
+
 	public void btnClearSp_onClick(View view)
 	{
 		CredentialsHandler.clearAll(this);
 		Intent i = new Intent(this, LoginActivity.class);
 		startActivity(i);
 		finish();
-	}
-
-	public void btnJoinRoom_onClick(View view)
-	{
 	}
 }

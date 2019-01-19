@@ -28,21 +28,13 @@ public class CredentialsHandler
 		sharedPreferences.edit().clear().commit();
 	}
 
-	public static void setUserInfo(Context context, UserPrivate user) {
+	public static void setUserInfo(Context context, String displayName) {
 		Context appContext = context.getApplicationContext();
-
-		String displayName = user.display_name;
-		String country = user.country;
-		String uri = user.uri;
-		String userId = user.id;
 
 		SharedPreferences sharedPref = getSharedPref(appContext);
 		SharedPreferences.Editor editor = sharedPref.edit();
 
 		editor.putString(DISPLAY_NAME, displayName);
-		editor.putString(COUNTRY, country);
-		editor.putString(URI, uri);
-		editor.putString(USER_ID, userId);
 		editor.apply();
 	}
 
@@ -78,17 +70,13 @@ public class CredentialsHandler
 		return token;
 	}
 
-	public static UserPrivate getUserInfo(Context context) {
-		UserPrivate userPrivate = new UserPrivate();
+	public static String getUserDisplayName(Context context) {
 		Context appContext = context.getApplicationContext();
 
 		SharedPreferences sharedPref = getSharedPref(appContext);
-		userPrivate.display_name = sharedPref.getString(DISPLAY_NAME, "");
-		userPrivate.country = sharedPref.getString(COUNTRY, "IL");
-		userPrivate.uri = sharedPref.getString(URI, "");
-		userPrivate.id = sharedPref.getString(USER_ID, "");
+		String displayName = sharedPref.getString(DISPLAY_NAME, "");
 
-		return userPrivate;
+		return displayName;
 	}
 
 	private static SharedPreferences getSharedPref(Context appContext)

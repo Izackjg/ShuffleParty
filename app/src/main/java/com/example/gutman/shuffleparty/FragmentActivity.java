@@ -11,13 +11,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
-import com.spotify.android.appremote.api.SpotifyAppRemote;
-
-import java.io.Serializable;
-import java.util.List;
-
-import kaaes.spotify.webapi.android.models.Playlist;
-import kaaes.spotify.webapi.android.models.Track;
 
 public class FragmentActivity extends AppCompatActivity
 {
@@ -38,7 +31,9 @@ public class FragmentActivity extends AppCompatActivity
 		Bundle b = new Bundle();
 		b.putString("ident", roomIdentifier);
 
-		if (b.getString("ident") != null)
+		boolean bundleValuesNull = b.getString("ident") == null;
+
+		if (!bundleValuesNull)
 		{
 			Fragment homeFragment = new HomeFragment();
 			homeFragment.setArguments(b);
