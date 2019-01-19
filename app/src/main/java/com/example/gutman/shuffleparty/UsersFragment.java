@@ -5,9 +5,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.BoringLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +18,7 @@ import android.view.ViewGroup;
 import com.example.gutman.shuffleparty.data.PermissionType;
 import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,7 +39,7 @@ public class UsersFragment extends Fragment
 	private RecyclerView connectedUsersView;
 
 	private List<UserPrivate> users;
-	private List<PermissionType> permissionTypes;
+	private List<Boolean> permissionTypes;
 	private SpotifyUserAdapter userAdapter;
 
 	private String roomIdentifer;
@@ -103,7 +106,7 @@ public class UsersFragment extends Fragment
 				// Get the PermissionType value, and convert it from Object to a PermissionType.
 				// Get the value, and convert it from Object to a Spotify UserPrivate class.
 				UserPrivate userPrivate = ds.child("user").getValue(UserPrivate.class);
-				PermissionType type = ds.child("permType").getValue(PermissionType.class);
+				boolean type = ds.child("permType").getValue(Boolean.class);
 				// Add it to the playlistItems and permissionTypes respectively.
 				users.add(userPrivate);
 				permissionTypes.add(type);

@@ -77,6 +77,11 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		this.items = items;
 	}
 
+	public SpotifyTrackAdapter(Context context) {
+		this.context = context;
+		this.items = new ArrayList<>();
+	}
+
 	public void clearData()
 	{
 		items.clear();
@@ -85,6 +90,11 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	public void addData(List<Track> items)
 	{
 		this.items.addAll(items);
+		notifyDataSetChanged();
+	}
+
+	public void addData(Track t) {
+		this.items.add(t);
 		notifyDataSetChanged();
 	}
 

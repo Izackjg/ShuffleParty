@@ -6,7 +6,7 @@ public class AlphabeticUtils
 {
 	public static final String ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz";
 	public static final String ALPHABET_UPPER = ALPHABET_LOWER.toUpperCase();
-	public static final String NUMERALS = "1234567890";
+	public static final String NUMERALS = "123456789";
 
 	public static final String COMBINED = ALPHABET_UPPER + NUMERALS;
 

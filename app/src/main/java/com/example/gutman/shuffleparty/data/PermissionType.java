@@ -1,6 +1,6 @@
 package com.example.gutman.shuffleparty.data;
 
-public enum  PermissionType
+public enum PermissionType
 {
 	Admin,
 	User

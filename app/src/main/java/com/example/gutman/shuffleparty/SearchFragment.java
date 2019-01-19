@@ -67,47 +67,23 @@ public class SearchFragment extends Fragment
 		// Meaning I can only set this value once, so I can set it to null or the roomIdentifer value.
 		final String roomIdentifer = getRoomIdentifer();
 
-		connectionParams = SpotifyUtils.getParams();
-
-		SpotifyAppRemote.connect(main, connectionParams, new Connector.ConnectionListener()
+		adapter = new SpotifyTrackAdapter(mainActivity, new SpotifyTrackAdapter.TrackSelectedListener()
 		{
 			@Override
-			public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
+			public void onItemSelected(View itemView, Track item, int position)
 			{
-				spotifyAppRemote = mSpotifyAppRemote;
+				if (roomIdentifer != null)
+					FirebaseUtils.addTrackToDatabase(roomIdentifer, item);
 
-				adapter = new SpotifyTrackAdapter(mainActivity, new SpotifyTrackAdapter.TrackSelectedListener()
-				{
-					@Override
-					public void onItemSelected(View itemView, Track item, int position)
-					{
-						if (roomIdentifer != null)
-							FirebaseUtils.addTrackToDatabase(roomIdentifer, item);
+				playlistItems.add(item);
 
-						playlistItems.add(item);
-
-						searchView.setQuery("", false);
-						adapter.clearData();
-						searchResults.setAdapter(adapter);
-
-//						if (playlistItems.size() >= 3)
-//						{
-//							Intent fragmentActivity = new Intent(mainActivity, FragmentActivity.class);
-//							fragmentActivity.putExtra("open", true);
-//							fragmentActivity.putExtra("ident", roomIdentifer);
-//							startActivity(fragmentActivity);
-//						}
-					}
-				});
-			}
-
-			@Override
-			public void onFailure(Throwable throwable)
-			{
-
+				searchView.setQuery("", false);
+				adapter.clearData();
+				searchResults.setAdapter(adapter);
 			}
 		});
 	}
+
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -119,7 +95,8 @@ public class SearchFragment extends Fragment
 		View view = inflater.inflate(R.layout.fragment_search, container, false);
 
 		apiToken = CredentialsHandler.getToken(mainActivity);
-		if (apiToken == null) {
+		if (apiToken == null)
+		{
 			Intent i = new Intent(main, LoginActivity.class);
 			startActivity(i);
 		}
@@ -135,7 +112,8 @@ public class SearchFragment extends Fragment
 		return view;
 	}
 
-	private void initSearchbar(View v) {
+	private void initSearchbar(View v)
+	{
 		searchView = v.findViewById(R.id.frag_search_view);
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener()
 		{
@@ -176,9 +154,11 @@ public class SearchFragment extends Fragment
 		});
 	}
 
-	private String getRoomIdentifer(){
+	private String getRoomIdentifer()
+	{
 		Bundle b = getArguments();
-		if (b != null){
+		if (b != null)
+		{
 			return b.getString("ident");
 		}
 		return null;

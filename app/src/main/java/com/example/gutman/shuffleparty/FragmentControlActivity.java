@@ -10,12 +10,14 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
+import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 
-public class FragmentActivity extends AppCompatActivity
+public class FragmentControlActivity extends AppCompatActivity
 {
 	private BottomNavigationView navView;
 	private String roomIdentifier;
+	private String username;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -27,6 +29,7 @@ public class FragmentActivity extends AppCompatActivity
 		navView.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener);
 
 		roomIdentifier = getIntent().getStringExtra("ident");
+		username = CredentialsHandler.getUserDisplayName(this);
 
 		Bundle b = new Bundle();
 		b.putString("ident", roomIdentifier);
@@ -92,7 +95,7 @@ public class FragmentActivity extends AppCompatActivity
 							loadFragment(fragment);
 							return true;
 						case R.id.navigation_exit:
-							FirebaseUtils.deleteRoomFromDatabase(roomIdentifier);
+							//FirebaseUtils.deleteRoomFromDatabase(roomIdentifier);
 							Intent i = new Intent(getBaseContext(), RoomControlActivity.class);
 							startActivity(i);
 							finish();

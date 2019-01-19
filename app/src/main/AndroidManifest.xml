@@ -22,7 +22,7 @@
         <activity android:name=".PlayTrackActivity"/>
         <activity android:name=".PlaylistActivity"/>
         <activity android:name=".RoomControlActivity"/>
-        <activity android:name=".FragmentActivity"/>
+        <activity android:name=".FragmentControlActivity"/>
     </application>
 
 </manifest>

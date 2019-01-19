@@ -10,7 +10,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.gutman.shuffleparty.data.PermissionType;
-import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -22,7 +21,7 @@ class SpotifyUserAdapter extends RecyclerView.Adapter<SpotifyUserAdapter.ViewHol
 {
 	private Context context;
 	private List<UserPrivate> users;
-	private List<PermissionType> permissionTypes;
+	private List<Boolean> permissionTypes;
 
 	public class ViewHolder extends RecyclerView.ViewHolder
 	{
@@ -41,7 +40,7 @@ class SpotifyUserAdapter extends RecyclerView.Adapter<SpotifyUserAdapter.ViewHol
 		}
 	}
 
-	public SpotifyUserAdapter(Context context, List<UserPrivate> users, List<PermissionType> permissionTypes)
+	public SpotifyUserAdapter(Context context, List<UserPrivate> users, List<Boolean> permissionTypes)
 	{
 		this.context = context;
 		this.users = users;
@@ -65,9 +64,9 @@ class SpotifyUserAdapter extends RecyclerView.Adapter<SpotifyUserAdapter.ViewHol
 	public void onBindViewHolder(ViewHolder holder, int position)
 	{
 		UserPrivate user = users.get(position);
-		PermissionType type = permissionTypes.get(position);
+		boolean type = permissionTypes.get(position);
 
-		if (type == PermissionType.Admin)
+		if (type)
 			holder.username.setTextColor(context.getResources().getColor(R.color.adminRed));
 
 		holder.username.setText("Username: " + user.display_name);

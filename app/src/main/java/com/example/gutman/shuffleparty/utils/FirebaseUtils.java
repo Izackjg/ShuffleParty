@@ -3,6 +3,7 @@ package com.example.gutman.shuffleparty.utils;
 import android.support.annotation.NonNull;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
 
+import com.example.gutman.shuffleparty.data.PermissionType;
 import com.example.gutman.shuffleparty.data.Room;
 import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.google.firebase.database.DataSnapshot;
@@ -12,9 +13,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.sql.Statement;
+import java.net.IDN;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.ArtistSimple;
@@ -38,7 +38,21 @@ public class FirebaseUtils
 		}
 	}
 
-	public static void addUserToRoom(String identifier, UserPrivateExtension u) {
+	public static void createRoomToDatabase(Room room, String createdAt)
+	{
+		DatabaseReference roomRef = ROOM_REF.child(room.getIdentifier());
+		roomRef.child("created").setValue(createdAt);
+		DatabaseReference userRef = roomRef.child("users").push();
+
+		for (UserPrivate u : room.getConnectedUsers())
+		{
+			if (u != null)
+				userRef.setValue(u);
+		}
+	}
+
+	public static void addUserToRoom(String identifier, UserPrivateExtension u)
+	{
 		DatabaseReference currentRoomUserRef = getCurrentRoomUsersReference(identifier);
 		DatabaseReference pushedRef = currentRoomUserRef.push();
 
@@ -49,6 +63,10 @@ public class FirebaseUtils
 	{
 		DatabaseReference currentRoomTrackRef = getCurrentRoomTrackReference(identifier);
 		currentRoomTrackRef.push().setValue(t);
+	}
+
+	public static DatabaseReference getCurrentRoomMainNode(String identifer) {
+		return ROOM_REF.child(identifer);
 	}
 
 	public static DatabaseReference getCurrentRoomTrackReference(String identifer)

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,18 +14,21 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.gutman.shuffleparty.data.PermissionType;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -38,9 +42,9 @@ import com.spotify.protocol.client.CallResult;
 import com.spotify.protocol.types.PlayerState;
 
 import kaaes.spotify.webapi.android.models.Track;
-import kaaes.spotify.webapi.android.models.UserPrivate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -58,6 +62,8 @@ public class PlaylistFragment extends Fragment
 	private Track current;
 	private String roomIdentifer;
 	private int index = 0;
+
+	private RelativeLayout fragPlayerLayout;
 
 	private RecyclerView playlistView;
 	private SpotifyTrackAdapter trackAdapter;
@@ -93,6 +99,8 @@ public class PlaylistFragment extends Fragment
 		// Inflate the layout for this fragment
 		View view = inflater.inflate(R.layout.fragment_playlist, container, false);
 
+		fragPlayerLayout = view.findViewById(R.id.frag_playerLayout);
+
 		btnPlayPause = view.findViewById(R.id.frag_btnPlayPause);
 		btnPlayPause.setOnClickListener(btnPlayPauseClickListener);
 
@@ -108,6 +116,8 @@ public class PlaylistFragment extends Fragment
 		playlistView.setHasFixedSize(true);
 
 		setupAppRemote();
+		trackAdapter = new SpotifyTrackAdapter(main);
+		trackAdapter.setItemSelectedListener(trackSelectedListener);
 
 		return view;
 	}
@@ -121,7 +131,32 @@ public class PlaylistFragment extends Fragment
 		if (args != null)
 			roomIdentifer = args.getString("ident");
 
-		//setupAppRemote();
+		final String mainName = main.getClass().getSimpleName();
+
+		final DatabaseReference ref = FirebaseUtils.getCurrentRoomUsersReference(roomIdentifer);
+		final Query adminRef = ref.orderByChild("permType").equalTo(true);
+		adminRef.addListenerForSingleValueEvent(new ValueEventListener()
+		{
+			@Override
+			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+			{
+				for (DataSnapshot ds : dataSnapshot.getChildren())
+				{
+					admin = ds.child("permType").getValue(Boolean.class);
+					Log.d(mainName, "ADMIN VAL: " + admin);
+				}
+
+
+				setupViewForCorrespondingUsers();
+			}
+
+			@Override
+			public void onCancelled(@NonNull DatabaseError databaseError)
+			{
+
+			}
+		});
+
 		setupRecyclerView();
 	}
 
@@ -216,14 +251,21 @@ public class PlaylistFragment extends Fragment
 
 		// Get the database reference at the current connected room identifer.
 		DatabaseReference ref = FirebaseUtils.getCurrentRoomTrackReference(roomIdentifer);
-		// Set its value event listener.
+		// Set its event listener.
 		ref.addValueEventListener(valueEventListener);
 	}
 
-	private void setupAdapter()
+	private void setupViewForCorrespondingUsers()
 	{
-		trackAdapter = new SpotifyTrackAdapter(main, playlistItems);
-		trackAdapter.setItemSelectedListener(trackSelectedListener);
+		if (!admin)
+			return;
+
+		fragPlayerLayout.setVisibility(View.VISIBLE);
+	}
+
+	private void addToAdapter()
+	{
+		trackAdapter.setData(playlistItems);
 		playlistView.setAdapter(trackAdapter);
 		setupRecyclerViewDecor();
 	}
@@ -267,16 +309,19 @@ public class PlaylistFragment extends Fragment
 				// Get the value, and convert it from Object to a Spotify Track.
 				Track t = ds.getValue(Track.class);
 				// Add it to the playlistItems.
-				playlistItems.add(t);
+				if (!playlistItems.contains(t))
+				{
+					playlistItems.add(t);
+				}
 			}
-			// Setup the adapter.
-			setupAdapter();
+			// Setup the adapter
+			addToAdapter();
 		}
 
 		@Override
 		public void onCancelled(@NonNull DatabaseError databaseError)
 		{
-
+			throw databaseError.toException();
 		}
 	};
 

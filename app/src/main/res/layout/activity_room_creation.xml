@@ -5,6 +5,32 @@
                 android:background="@color/white"
                 android:orientation="vertical">
 
+    <EditText
+        android:id="@+id/etRoomCode"
+        android:layout_width="190dp"
+        android:layout_height="70dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:backgroundTint="@color/colorPrimary"
+        android:gravity="center"
+        android:hint="Room Code"
+        android:lines="1"
+        android:maxLines="1"
+        android:minLines="1"
+        android:textColor="@color/colorPrimary"
+        android:textColorHint="@color/lightGray"
+        android:textSize="20sp"/>
+
+    <Button
+        android:id="@+id/btnJoinRoom"
+        android:layout_width="190dp"
+        android:layout_height="45dp"
+        android:layout_below="@id/etRoomCode"
+        android:layout_centerHorizontal="true"
+        android:onClick="btnJoinRoom_onClick"
+        android:text="Join Room"
+        android:textSize="16sp"/>
+
     <Button
         android:id="@+id/btnCreateRoom"
         android:layout_width="190dp"
@@ -15,22 +41,13 @@
         android:textSize="16sp"/>
 
     <Button
-        android:id="@+id/btnJoinRoom"
-        android:layout_width="190dp"
-        android:layout_height="45dp"
-        android:layout_below="@id/btnCreateRoom"
-        android:layout_centerInParent="true"
-        android:onClick="btnJoinRoom_onClick"
-        android:text="Join Room"
-        android:textSize="16sp"/>
-
-    <Button
         android:id="@+id/btnClearSP"
         android:layout_width="190dp"
         android:layout_height="45dp"
-        android:layout_below="@id/btnJoinRoom"
-        android:layout_centerInParent="true"
+        android:layout_below="@id/btnCreateRoom"
+        android:layout_centerHorizontal="true"
         android:onClick="btnClearSp_onClick"
         android:text="Clear SP"
         android:textSize="16sp"/>
+
 </RelativeLayout>

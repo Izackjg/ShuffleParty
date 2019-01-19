@@ -7,9 +7,10 @@
 
     <Button
         android:id="@+id/btnSpotifyLogin"
-        android:layout_width="190dp"
-        android:layout_height="45dp"
+        android:layout_width="230dp"
+        android:layout_height="70dp"
         android:onClick="btnSpotifyLogin_onClick"
+        android:maxLines="1"
         android:layout_centerInParent="true"
         android:text="Login with Spotify"
         android:textSize="16sp"/>

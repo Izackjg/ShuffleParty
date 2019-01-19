@@ -28,6 +28,7 @@
             android:textStyle="bold"/>
 
         <RelativeLayout
+            android:visibility="gone"
             android:id="@+id/frag_playerLayout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"

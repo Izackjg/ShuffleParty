@@ -7,7 +7,7 @@ import kaaes.spotify.webapi.android.models.UserPrivate;
 public class UserPrivateExtension extends UserPrivate
 {
 	private UserPrivate user;
-	private PermissionType permType;
+	private boolean admin;
 	private Parcel in;
 
 	public UserPrivateExtension()
@@ -15,16 +15,16 @@ public class UserPrivateExtension extends UserPrivate
 
 	}
 
-	public UserPrivateExtension(UserPrivate userPrivate, PermissionType permType, Parcel in)
+	public UserPrivateExtension(UserPrivate userPrivate, boolean admin, Parcel in)
 	{
 		super(in);
 		this.user = userPrivate;
-		this.permType = permType;
+		this.admin = admin;
 	}
 
-	public PermissionType getPermType()
+	public boolean getPermType()
 	{
-		return permType;
+		return admin;
 	}
 
 	public UserPrivate getUser()
