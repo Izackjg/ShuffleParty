@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.gutman.shuffleparty.data.PermissionType;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
