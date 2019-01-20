@@ -46,7 +46,7 @@ import java.util.List;
  */
 public class PlaylistFragment extends Fragment
 {
-	private boolean admin = false;
+	private boolean admin = true;
 	private boolean paused;
 
 	private Context main;
@@ -210,7 +210,7 @@ public class PlaylistFragment extends Fragment
 						progress.setProgress((int) elapsedSeconds);
 						tvTrackElap.setText(SpotifyUtils.formatTimeDuration((int) elapsedSeconds));
 
-						if (elapsedSeconds >= durationSeconds - 1.5)
+						if (elapsedSeconds >= durationSeconds - 1.75)
 						{
 							if (index == playlistItems.size() - 1)
 								index = -1;
@@ -340,7 +340,6 @@ public class PlaylistFragment extends Fragment
 		@Override
 		public void onClick(View v)
 		{
-			//paused = !paused;
 			if (paused)
 			{
 				playerApi.resume();

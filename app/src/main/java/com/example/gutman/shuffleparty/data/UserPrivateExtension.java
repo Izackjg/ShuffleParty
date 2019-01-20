@@ -22,7 +22,7 @@ public class UserPrivateExtension extends UserPrivate
 		this.admin = admin;
 	}
 
-	public boolean getPermType()
+	public boolean getAdmin()
 	{
 		return admin;
 	}

@@ -98,7 +98,10 @@ public class RoomControlActivity extends AppCompatActivity
 	{
 		final List<UserPrivate> userList = new ArrayList<>();
 		if (userPrivate == null || in == null)
+		{
 			clearCredentials();
+			return;
+		}
 
 		DateFormat df = new SimpleDateFormat("EEE, MMM d, yyyy HH:mm");
 		String dateFormatted = df.format(Calendar.getInstance().getTime());
@@ -165,11 +168,6 @@ public class RoomControlActivity extends AppCompatActivity
 			}
 		});
 
-	}
-
-	public void btnClearSp_onClick(View view)
-	{
-		clearCredentials();
 	}
 
 	private void startFragmentActivityHolder(String identifer){

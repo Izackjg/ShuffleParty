@@ -5,16 +5,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
+import com.google.gson.JsonObject;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -25,6 +31,7 @@ import retrofit.client.Response;
 
 public class LoginActivity extends AppCompatActivity
 {
+	private Context main;
 	private static final int REQUEST_CODE = 1337;
 	private static final String REDIRECT_URI = "http://example.com/callback/";
 	private static String ApiToken;
@@ -37,6 +44,7 @@ public class LoginActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
 
+		main = this;
 		btnSpotifyLogin = findViewById(R.id.btnSpotifyLogin);
 
 		if (CredentialsHandler.getToken(this) != null)
@@ -54,16 +62,18 @@ public class LoginActivity extends AppCompatActivity
 
 		if (requestCode == REQUEST_CODE)
 		{
-			AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, data);
+			final AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, data);
 
 			switch (response.getType())
 			{
 				case TOKEN:
 					ApiToken = response.getAccessToken();
-					CredentialsHandler.setToken(this, ApiToken, 365, TimeUnit.DAYS);
+					CredentialsHandler.setToken(this, ApiToken, 1, TimeUnit.HOURS);
 					Intent intent = new Intent(this, RoomControlActivity.class);
 					startActivity(intent);
 					finish();
+					break;
+				case CODE:
 					break;
 				case ERROR:
 					break;
@@ -77,9 +87,10 @@ public class LoginActivity extends AppCompatActivity
 	public void btnSpotifyLogin_onClick(View v)
 	{
 		AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(SpotifyConstants.ClientID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
-		builder.setScopes(new String[]{"streaming", "user-read-private", "user-read-recently-played", "user-modify-playback-state", "app-remote-control"});
+		builder.setScopes(new String[]{"streaming", "user-modify-playback-state", "user-read-private", "app-remote-control"});
 		AuthenticationRequest request = builder.build();
 
-		AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
+		AuthenticationClient.openLoginActivity((Activity) main, REQUEST_CODE, request);
 	}
 }
+

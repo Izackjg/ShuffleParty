@@ -2,12 +2,40 @@ package com.example.gutman.shuffleparty.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.view.inputmethod.EditorInfo;
+import android.util.Base64;
 
-import java.security.PublicKey;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.TimeUnit;
 
-import kaaes.spotify.webapi.android.models.UserPrivate;
+import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import retrofit.http.POST;
+
 
 public class CredentialsHandler
 {
@@ -17,18 +45,17 @@ public class CredentialsHandler
 	private static final String EXPIRES_AT = "expires_at";
 
 	private static final String DISPLAY_NAME = "display_name";
-	private static final String COUNTRY = "country";
-	private static final String URI = "user_uri";
-	private static final String USER_ID = "user_id";
 
-	public static void clearAll(Context context) {
+	public static void clearAll(Context context)
+	{
 		Context appContext = context.getApplicationContext();
 
 		SharedPreferences sharedPreferences = getSharedPref(appContext);
 		sharedPreferences.edit().clear().commit();
 	}
 
-	public static void setUserInfo(Context context, String displayName) {
+	public static void setUserInfo(Context context, String displayName)
+	{
 		Context appContext = context.getApplicationContext();
 
 		SharedPreferences sharedPref = getSharedPref(appContext);
@@ -70,7 +97,8 @@ public class CredentialsHandler
 		return token;
 	}
 
-	public static String getUserDisplayName(Context context) {
+	public static String getUserDisplayName(Context context)
+	{
 		Context appContext = context.getApplicationContext();
 
 		SharedPreferences sharedPref = getSharedPref(appContext);
