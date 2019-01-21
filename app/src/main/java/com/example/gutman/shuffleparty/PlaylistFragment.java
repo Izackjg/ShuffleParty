@@ -177,37 +177,35 @@ public class PlaylistFragment extends Fragment
 					{
 						currentState = playerState;
 
+						String name = main.getClass().getSimpleName();
 						paused = currentState.isPaused;
 
-						String name = main.getClass().getSimpleName();
-
 						// TODO: FIX TRACK END LOGIC - SOME TRACKS DONT END ON FIRST PLAY.
+
 						// Convert to double from long so I can do some decimal math with them.
 						// Meaning, I can subtract decimal values for the track end logic.
 						double elapsedSeconds = currentState.playbackPosition / 1000.0;
-						double elapsedSecondsRounded = Math.round(elapsedSeconds);
+						double elapsedSecondsRounded = Math.ceil(elapsedSeconds);
 
-						double durationSeconds = current.duration_ms / 1000.0;
+						final double durationSeconds = current.duration_ms / 1000.0;
 
-						double error = durationSeconds % 1.0;
-						double end = 0.0;
+						double decimal = durationSeconds % 1.0;
+						double end;
 
-						Log.d(name, "TIMER: ERROR " + error);
-
-						if (error <= 0.5)
-							end = Math.floor(durationSeconds - 1);
+						if (decimal <= 0.5)
+							end = Math.floor(durationSeconds - 2);
 						else
-							end = Math.ceil(durationSeconds);
+							end = Math.floor(durationSeconds);
 
 						Log.d(name, "TIMER: ELAPSED " + elapsedSeconds);
 						Log.d(name, "TIMER: ELAPSED R " + elapsedSecondsRounded);
 						Log.d(name, "TIMER: DUR " + durationSeconds);
 						Log.d(name, "TIMER: END " + end);
 
-						progress.setProgress((int)elapsedSeconds);
+						progress.setProgress((int)elapsedSecondsRounded);
 						tvTrackElap.setText(SpotifyUtils.formatTimeDuration(progress.getProgress()));
 
-						if (elapsedSecondsRounded >= end)
+						if ((int)elapsedSecondsRounded >= (int)end)
 						{
 							if (index == playlistItems.size() - 1)
 								index = -1;
