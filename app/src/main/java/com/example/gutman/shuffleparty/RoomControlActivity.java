@@ -68,7 +68,6 @@ public class RoomControlActivity extends AppCompatActivity
 
 		btnCreateRoom = findViewById(R.id.btnCreateRoom);
 		btnJoinRoom = findViewById(R.id.btnJoinRoom);
-		btnClearSP = findViewById(R.id.btnClearSP);
 		etRoomCode = findViewById(R.id.etRoomCode);
 
 		if (spotify == null)

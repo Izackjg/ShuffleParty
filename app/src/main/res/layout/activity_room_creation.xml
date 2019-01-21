@@ -39,15 +39,4 @@
         android:onClick="btnCreateRoom_onClick"
         android:text="Create Room"
         android:textSize="16sp"/>
-
-    <Button
-        android:id="@+id/btnClearSP"
-        android:layout_width="190dp"
-        android:layout_height="45dp"
-        android:layout_below="@id/btnCreateRoom"
-        android:layout_centerHorizontal="true"
-        android:onClick="btnClearSp_onClick"
-        android:text="Clear SP"
-        android:textSize="16sp"/>
-
 </RelativeLayout>

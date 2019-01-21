@@ -100,7 +100,7 @@ public class UsersFragment extends Fragment
 				// Get the PermissionType value, and convert it from Object to a PermissionType.
 				// Get the value, and convert it from Object to a Spotify UserPrivate class.
 				UserPrivate userPrivate = ds.child("user").getValue(UserPrivate.class);
-				boolean type = ds.child("permType").getValue(Boolean.class);
+				boolean type = ds.child("admin").getValue(Boolean.class);
 				// Add it to the playlistItems and permissionTypes respectively.
 				users.add(userPrivate);
 				permissionTypes.add(type);

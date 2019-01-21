@@ -125,32 +125,6 @@ public class PlaylistFragment extends Fragment
 		if (args != null)
 			roomIdentifer = args.getString("ident");
 
-		final String mainName = main.getClass().getSimpleName();
-
-		final DatabaseReference ref = FirebaseUtils.getCurrentRoomUsersReference(roomIdentifer);
-		final Query adminRef = ref.orderByChild("permType").equalTo(true);
-		adminRef.addListenerForSingleValueEvent(new ValueEventListener()
-		{
-			@Override
-			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-			{
-				for (DataSnapshot ds : dataSnapshot.getChildren())
-				{
-					admin = ds.child("permType").getValue(Boolean.class);
-					Log.d(mainName, "ADMIN VAL: " + admin);
-				}
-
-
-				setupViewForCorrespondingUsers();
-			}
-
-			@Override
-			public void onCancelled(@NonNull DatabaseError databaseError)
-			{
-
-			}
-		});
-
 		setupRecyclerView();
 	}
 
@@ -173,6 +147,8 @@ public class PlaylistFragment extends Fragment
 				playerApi.play(current.uri);
 				if (mainActivity != null)
 					mainActivity.runOnUiThread(update);
+				else
+					handler.removeCallbacks(update);
 
 				progress.setMax(dur);
 				tvTrackDur.setText(SpotifyUtils.formatTimeDuration(dur));
@@ -204,13 +180,23 @@ public class PlaylistFragment extends Fragment
 
 						// Convert to double from long so I can do some decimal math with them.
 						// Meaning, I can subtract decimal values for the track end logic.
-						double elapsedSeconds = (double) currentState.playbackPosition / 1000;
-						double durationSeconds = (double) current.duration_ms / 1000;
+						double elapsedSeconds = (double) currentState.playbackPosition / 1000.0;
+						double elapsedSecondsRounded = Math.ceil(elapsedSeconds);
 
-						progress.setProgress((int) elapsedSeconds);
-						tvTrackElap.setText(SpotifyUtils.formatTimeDuration((int) elapsedSeconds));
+						double durationSeconds = (double) current.duration_ms / 1000.0;
 
-						if (elapsedSeconds >= durationSeconds - 1.75)
+						double end = Math.floor(durationSeconds);
+
+						//String name = main.getClass().getSimpleName();
+//						Log.d(name, "TIMER: ELAPSED " + elapsedSeconds);
+//						Log.d(name, "TIMER: ELAPSED R " + elapsedSecondsRounded);
+//						Log.d(name, "TIMER: DUR " + durationSeconds);
+//						Log.d(name, "TIMER: END " + end);
+
+						progress.setProgress((int)elapsedSeconds);
+						tvTrackElap.setText(SpotifyUtils.formatTimeDuration(progress.getProgress()));
+
+						if (elapsedSecondsRounded >= end)
 						{
 							if (index == playlistItems.size() - 1)
 								index = -1;
@@ -247,14 +233,6 @@ public class PlaylistFragment extends Fragment
 		DatabaseReference ref = FirebaseUtils.getCurrentRoomTrackReference(roomIdentifer);
 		// Set its event listener.
 		ref.addValueEventListener(valueEventListener);
-	}
-
-	private void setupViewForCorrespondingUsers()
-	{
-		if (!admin)
-			return;
-
-		fragPlayerLayout.setVisibility(View.VISIBLE);
 	}
 
 	private void addToAdapter()

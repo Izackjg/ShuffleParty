@@ -2,6 +2,7 @@ package com.example.gutman.shuffleparty.utils;
 
 import android.support.annotation.NonNull;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
+import android.util.Log;
 
 import com.example.gutman.shuffleparty.data.Room;
 import com.example.gutman.shuffleparty.data.UserPrivateExtension;
@@ -9,6 +10,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -60,10 +62,6 @@ public class FirebaseUtils
 	{
 		DatabaseReference currentRoomTrackRef = getCurrentRoomTrackReference(identifier);
 		currentRoomTrackRef.push().setValue(t);
-	}
-
-	public static DatabaseReference getCurrentRoomMainNode(String identifer) {
-		return ROOM_REF.child(identifer);
 	}
 
 	public static DatabaseReference getCurrentRoomTrackReference(String identifer)
