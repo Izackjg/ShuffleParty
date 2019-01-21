@@ -36,6 +36,7 @@ import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.client.CallResult;
 import com.spotify.protocol.types.PlayerState;
 
+import kaaes.spotify.webapi.android.models.ErrorResponse;
 import kaaes.spotify.webapi.android.models.Track;
 
 import java.util.ArrayList;
@@ -178,20 +179,30 @@ public class PlaylistFragment extends Fragment
 
 						paused = currentState.isPaused;
 
+						String name = main.getClass().getSimpleName();
+
+						// TODO: FIX TRACK END LOGIC - SOME TRACKS DONT END ON FIRST PLAY.
 						// Convert to double from long so I can do some decimal math with them.
 						// Meaning, I can subtract decimal values for the track end logic.
-						double elapsedSeconds = (double) currentState.playbackPosition / 1000.0;
-						double elapsedSecondsRounded = Math.ceil(elapsedSeconds);
+						double elapsedSeconds = currentState.playbackPosition / 1000.0;
+						double elapsedSecondsRounded = Math.round(elapsedSeconds);
 
-						double durationSeconds = (double) current.duration_ms / 1000.0;
+						double durationSeconds = current.duration_ms / 1000.0;
 
-						double end = Math.floor(durationSeconds);
+						double error = durationSeconds % 1.0;
+						double end = 0.0;
 
-						//String name = main.getClass().getSimpleName();
-//						Log.d(name, "TIMER: ELAPSED " + elapsedSeconds);
-//						Log.d(name, "TIMER: ELAPSED R " + elapsedSecondsRounded);
-//						Log.d(name, "TIMER: DUR " + durationSeconds);
-//						Log.d(name, "TIMER: END " + end);
+						Log.d(name, "TIMER: ERROR " + error);
+
+						if (error <= 0.5)
+							end = Math.floor(durationSeconds - 1);
+						else
+							end = Math.ceil(durationSeconds);
+
+						Log.d(name, "TIMER: ELAPSED " + elapsedSeconds);
+						Log.d(name, "TIMER: ELAPSED R " + elapsedSecondsRounded);
+						Log.d(name, "TIMER: DUR " + durationSeconds);
+						Log.d(name, "TIMER: END " + end);
 
 						progress.setProgress((int)elapsedSeconds);
 						tvTrackElap.setText(SpotifyUtils.formatTimeDuration(progress.getProgress()));
@@ -282,9 +293,8 @@ public class PlaylistFragment extends Fragment
 				Track t = ds.getValue(Track.class);
 				// Add it to the playlistItems.
 				if (!playlistItems.contains(t))
-				{
 					playlistItems.add(t);
-				}
+
 			}
 			// Setup the adapter
 			addToAdapter();
