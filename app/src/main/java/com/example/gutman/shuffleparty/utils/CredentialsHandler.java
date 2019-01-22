@@ -45,6 +45,7 @@ public class CredentialsHandler
 	private static final String EXPIRES_AT = "expires_at";
 
 	private static final String DISPLAY_NAME = "display_name";
+	private static final String PRODUCT_TYPE = "product_type";
 
 	public static void clearAll(Context context)
 	{
@@ -54,7 +55,7 @@ public class CredentialsHandler
 		sharedPreferences.edit().clear().commit();
 	}
 
-	public static void setUserInfo(Context context, String displayName)
+	public static void setUserInfo(Context context, String displayName, String product)
 	{
 		Context appContext = context.getApplicationContext();
 
@@ -62,6 +63,7 @@ public class CredentialsHandler
 		SharedPreferences.Editor editor = sharedPref.edit();
 
 		editor.putString(DISPLAY_NAME, displayName);
+		editor.putString(PRODUCT_TYPE, product);
 		editor.apply();
 	}
 
@@ -105,6 +107,16 @@ public class CredentialsHandler
 		String displayName = sharedPref.getString(DISPLAY_NAME, "");
 
 		return displayName;
+	}
+
+	public static String getUserProduct(Context context)
+	{
+		Context appContext = context.getApplicationContext();
+
+		SharedPreferences sharedPref = getSharedPref(appContext);
+		String product = sharedPref.getString(PRODUCT_TYPE, "");
+
+		return product;
 	}
 
 	private static SharedPreferences getSharedPref(Context appContext)

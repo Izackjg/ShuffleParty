@@ -22,7 +22,9 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
@@ -43,11 +45,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-/**
- * A simple {@link Fragment} subclass.
- */
+// TODO: SET ADMIN BOOLEAN BASED ON CURRENT USERNAME FROM DB - AND CHANGE VIEW BASED ON THAT.
+// TODO: SET ADMIN BASED ON PRODUCT TYPE - IF CREATOR IS OPEN - REMOVE IT FROM CREATOR - SET IT TO FIRST PREMIUM USER.
+
 public class PlaylistFragment extends Fragment
 {
+	private String TAG = "PlaylistFragment";
+
 	private boolean admin = true;
 	private boolean paused;
 
@@ -76,7 +80,6 @@ public class PlaylistFragment extends Fragment
 	private PlayerState currentState;
 
 	private Handler handler;
-	private Runnable playerStateUpdateRunnable;
 
 	public PlaylistFragment()
 	{
@@ -137,6 +140,7 @@ public class PlaylistFragment extends Fragment
 		Bundle args = getArguments();
 		if (args != null)
 			roomIdentifer = args.getString("ident");
+
 		setupDatabaseListener();
 	}
 
@@ -150,32 +154,37 @@ public class PlaylistFragment extends Fragment
 			public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
 			{
 				playerApi = mSpotifyAppRemote.getPlayerApi();
+//				String product = CredentialsHandler.getUserProduct(main);
+//				Log.d(TAG, "PRODUCT: " + product);
+//				if (product.equals("free") || product.equals("open")) {
+//					Toast.makeText(main, "You have a free account, only Spotify Premium users can stream.", Toast.LENGTH_LONG).show();
+//					return;
+//				}
 
 				if (mSpotifyAppRemote.isConnected())
 				{
 					playerApi.getPlayerState().setResultCallback(new CallResult.ResultCallback<PlayerState>()
 					{
 						@Override
-						public void onResult(PlayerState mPlayerState)
+						public void onResult(PlayerState playerState)
 						{
-							currentState = mPlayerState;
-							setupUpdateRunnable();
-							if (mainActivity != null)
-								mainActivity.runOnUiThread(playerStateUpdateRunnable);
+							currentState = playerState;
+							mainActivity.runOnUiThread(playerStateUpdateRunnable);
 							setupUI(currentState.track);
 						}
 					});
-					return;
+				} else
+				{
+					current = playlistItems.get(index);
+					int dur = (int) current.duration_ms / 1000;
+					setupUI(current);
+
+					playerApi.play(current.uri);
+					mainActivity.runOnUiThread(playerStateUpdateRunnable);
+
+					progress.setMax(dur);
+					tvTrackDur.setText(SpotifyUtils.formatTimeDuration(progress.getMax()));
 				}
-
-				current = playlistItems.get(index);
-				int dur = (int) current.duration_ms / 1000;
-				setupUI(current);
-
-				playerApi.play(current.uri);
-
-				progress.setMax(dur);
-				tvTrackDur.setText(SpotifyUtils.formatTimeDuration(progress.getMax()));
 			}
 
 			@Override
@@ -184,53 +193,6 @@ public class PlaylistFragment extends Fragment
 
 			}
 		});
-	}
-
-	private void setupUpdateRunnable()
-	{
-		playerStateUpdateRunnable = new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				playerApi.getPlayerState().setResultCallback(new CallResult.ResultCallback<PlayerState>()
-				{
-					@Override
-					public void onResult(PlayerState playerState)
-					{
-						currentState = playerState;
-
-						String name = main.getClass().getSimpleName();
-						paused = currentState.isPaused;
-
-						boolean end = false;
-						SpotifyAsyncTask spotifyTask = new SpotifyAsyncTask();
-
-						try
-						{
-							end = spotifyTask.execute(currentState).get();
-						} catch (InterruptedException e)
-						{
-						} catch (ExecutionException e)
-						{
-						}
-
-						if (end)
-						{
-							Log.d(name, "TRACK END " + end);
-							if (index == playlistItems.size() - 1)
-								index = -1;
-
-							index += 1;
-							current = playlistItems.get(index);
-							setupUI(current);
-							playerApi.play(current.uri);
-						}
-					}
-				});
-				handler.postDelayed(this, 1000);
-			}
-		};
 	}
 
 	private void setupUI(Track newTrack)
@@ -326,9 +288,6 @@ public class PlaylistFragment extends Fragment
 				@Override
 				public void onItemSelected(View itemView, Track item, int position)
 				{
-					if (index == position)
-						return;
-
 					index = position;
 					current = item;
 					setupUI(current);
@@ -353,24 +312,105 @@ public class PlaylistFragment extends Fragment
 		}
 	};
 
+	private Runnable playerStateUpdateRunnable = new Runnable()
+	{
+		@Override
+		public void run()
+		{
+			// Contact spotify api and set a callback when api returns a result of type PlayerState.
+			playerApi.getPlayerState().setResultCallback(new CallResult.ResultCallback<PlayerState>()
+			{
+				@Override
+				public void onResult(PlayerState playerState)
+				{
+					// Set the global variable to the result we get from the Callback.
+					// I do this so I can access this variable from anywhere in the code.
+					currentState = playerState;
+
+					// Check if the current state is paused.
+					paused = currentState.isPaused;
+
+					// Has the track ended? Default is false, because it hasn't ended.
+					boolean end = false;
+					// Create a new SpotifyAsnycTask which deals with the small task of calculations based on the current
+					// track and it's duration.
+					SpotifyAsyncTask spotifyTask = new SpotifyAsyncTask();
+
+					try
+					{
+						// Get the result of the execution. This returns a boolean.
+						end = spotifyTask.execute(currentState).get();
+					} catch (InterruptedException e)
+					{
+					} catch (ExecutionException e)
+					{
+					}
+
+					// If the boolean is true, then the track has ended.
+					if (end)
+					{
+						// End of list, reset index.
+						if (index == playlistItems.size() - 1)
+							index = -1;
+
+						// Play next track.
+						// Get track based on index, setup UI, and play that track.
+						index += 1;
+						current = playlistItems.get(index);
+						setupUI(current);
+						playerApi.play(current.uri);
+					}
+				}
+			});
+			// Continue this thread each second.
+			handler.postDelayed(this, 1000);
+		}
+	};
+
 	public class SpotifyAsyncTask extends AsyncTask<PlayerState, Double, Boolean>
 	{
 		@Override
 		protected Boolean doInBackground(PlayerState... playerStates)
 		{
-			if (current == null)
+			// PlayerState... -> Can receive multiple PlayerState objects, or an array of them.
+			// In this case I know I only pass one, so it is the first index.
+			PlayerState state = playerStates[0];
+			com.spotify.protocol.types.Track stateTrack = state.track;
+
+			// state and current can also be null. For example, a person creating a room the state will be null,
+			// because he hasn't navigated to the PlaylistFragment ever, meaning current and state will be null,
+			// until the user starts a playback.
+			if (state == null && current == null)
+				return false;
+			if (stateTrack == null)
 				return false;
 
-			PlayerState state = playerStates[0];
-
+			// Playback Position is in ms.
+			// Get the state's elapsed seconds, and convert it into seconds.
 			double elapsedSeconds = state.playbackPosition / 1000.0;
 			double elapsedSecondsRound = Math.ceil(elapsedSeconds);
 
+			// Passes the progress to the onProgressUpdate(Double...)
 			publishProgress(elapsedSecondsRound);
 
-			double dur = current.duration_ms / 1000.0;
+			double dur = 0.0;
+			// If the current track isn't null, then take the current tracks duration.
+			// The current track will be null when we navigate to other fragments.
+			if (current != null)
+				dur = current.duration_ms / 1000.0;
+				// If the current track is null, this means we have navigated to other fragments.
+				// Get the PlayerState track duration -> usually the track that is currently playing.
+			if (state != null)
+				dur = state.track.duration / 1000.0;
 
+			// I do these above lines so that in the method: setupAppRemote
+			// I am able to setup the UI and progress update, whether or not the variable current is null.
+
+			// This gets the value of the decimal point after the duration.
+			// We multiply it by a value to get it closest to its original value,
+			// But still large enough to have the track end.
 			double decimal = (dur % 1.0) * 2.0;
+			// Floor the value, because we want to lowest value - closest to the original track duration.
 			double end = Math.floor(dur - decimal);
 
 			if ((int) elapsedSecondsRound >= (int) end)
@@ -379,11 +419,13 @@ public class PlaylistFragment extends Fragment
 				return false;
 		}
 
+		// Called on UI thread after calling publishProgress(Double...)
 		@Override
 		protected void onProgressUpdate(Double... values)
 		{
 			super.onProgressUpdate(values);
 			double val = values[0];
+			Log.d(TAG, "LOGGING DEBUG val " + val);
 			progress.setProgress((int) val);
 			tvTrackElap.setText(SpotifyUtils.formatTimeDuration(progress.getProgress()));
 		}

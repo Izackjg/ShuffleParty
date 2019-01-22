@@ -82,7 +82,7 @@ public class RoomControlActivity extends AppCompatActivity
 				userPrivate = mUserPrivate;
 				userPrivate.writeToParcel(in, 0);
 
-				CredentialsHandler.setUserInfo(getBaseContext(), userPrivate.display_name);
+				CredentialsHandler.setUserInfo(getBaseContext(), userPrivate.display_name, userPrivate.product);
 			}
 
 			@Override

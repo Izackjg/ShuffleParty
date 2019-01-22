@@ -11,7 +11,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
-import com.example.gutman.shuffleparty.utils.FirebaseUtils;
+
+// TODO: DELETE USER WHEN HE HITS EXIT ROOM BUTTON. IF ADMIN PROMT FOR LEAVE ONLY OR DELETE ROOM.
 
 public class FragmentControlActivity extends AppCompatActivity
 {

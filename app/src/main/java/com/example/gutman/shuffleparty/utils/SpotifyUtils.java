@@ -28,19 +28,6 @@ public class SpotifyUtils
 	public static final int NO_REPEAT = 0;
 	public static final int REPEAT = 1;
 
-	public static String getRandomTitle()
-	{
-		List<String> titles = Arrays.asList("Good Form", "Never Recover", "Mama", "Eminem Fall", "Kazka Cry", "rockstar", "Blame It On Me",
-				"GOKU", "Psycho", "Meek Mill Going Bad", "Bartier Cardi", "Commando", "Bosses Dont Speak", "Slippery", "Get Right Witcha", "Walk It Talk It",
-				"Congratulations", "Plastic", "MotorSport", "Drop Top Benz", "Multi Millionaire", "Juicy J Neighbor", "Tyga Dip", "Talk Regardless", "LLC",
-				"Designer Outlet", "Designer Overseas", "Sicko Mode", "Stargazing", "Carousel", "Logic Iconic", "NAV Know Me", "Quavo RERUN", "Everybody Dies", "Uproar",
-				"BACK ON MY SH*T", "Stranger Things", "The Passion", "WORKIN ME", "Icon", "Kelly Price", "Saint", "Bodak Yellow", "Ty Dolla Sign Clout", "goosebumps",
-				"Antidote", "44 More", "Heavy Camp", "Flexicution", "Contra", "BUTTERFLY EFFECT", "Chun Li", "Rae Sremmurd Close", "Stir Fry", "6 Foot 7 Foot");
-
-		String item = titles.get(new Random().nextInt(titles.size()));
-		return item;
-	}
-
 	public static SpotifyService getInstance(String apiToken)
 	{
 		SpotifyApi api = new SpotifyApi();
