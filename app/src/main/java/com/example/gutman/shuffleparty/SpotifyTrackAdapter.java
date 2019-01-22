@@ -59,9 +59,9 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 			if (itemSelectedListener == null)
 				return;
 
-			index = getLayoutPosition();
+			index = getAdapterPosition();
 			notifyItemChanged(index);
-			itemSelectedListener.onItemSelected(v, items.get(getAdapterPosition()), index);
+			itemSelectedListener.onItemSelected(v, items.get(index), index);
 		}
 	}
 
@@ -77,11 +77,6 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		this.items = items;
 	}
 
-	public SpotifyTrackAdapter(Context context) {
-		this.context = context;
-		this.items = new ArrayList<>();
-	}
-
 	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
 	{
@@ -90,7 +85,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	}
 
 	@Override
-	public void onBindViewHolder(ViewHolder holder, final int position)
+	public void onBindViewHolder(ViewHolder holder, int position)
 	{
 		Track item = items.get(position);
 
@@ -98,6 +93,8 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 
 		if (item.explicit)
 			holder.explicity.setVisibility(View.VISIBLE);
+		else
+			holder.explicity.setVisibility(View.GONE);
 
 		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + SpotifyConstants.SEPERATOR + item.album.name);
 
