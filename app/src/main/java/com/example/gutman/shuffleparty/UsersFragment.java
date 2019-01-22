@@ -51,6 +51,9 @@ public class UsersFragment extends Fragment
 		main = container.getContext();
 		mainActivity = getActivity();
 
+		users = new ArrayList<>();
+		permissionTypes = new ArrayList<>();
+
 		// Inflate the layout for this fragment
 		View view = inflater.inflate(R.layout.fragment_users, container, false);
 
@@ -75,9 +78,6 @@ public class UsersFragment extends Fragment
 
 	private void setupRecyclerView()
 	{
-		users = new ArrayList<>();
-		permissionTypes = new ArrayList<>();
-
 		// Get the database reference at the current connected room identifer.
 		DatabaseReference ref = FirebaseUtils.getCurrentRoomUsersReference(roomIdentifer);
 		// Set its value event listener.

@@ -67,10 +67,10 @@ public class SpotifyUtils
 		return joiner.join(names);
 	}
 
-	public static String toStringFromArtists(TrackSimple item)
+	public static String toStringFromArtists(com.spotify.protocol.types.Track item)
 	{
 		List<String> names = new ArrayList<>();
-		for (ArtistSimple i : item.artists)
+		for (Artist i : item.artists)
 		{
 			names.add(i.name);
 		}

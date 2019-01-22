@@ -25,6 +25,7 @@
             card_view:srcCompat="@color/colorPrimary"/>
 
         <TextView
+            android:visibility="gone"
             android:id="@+id/entityExplicity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -35,7 +36,7 @@
             android:background="@color/explicityBackground"
             android:gravity="center"
             android:padding="2dp"
-            android:text="Explicity"
+            android:text="EXPLICIT"
             android:textAppearance="@style/TextAppearance.AppCompat"
             android:textColor="@color/colorPrimary"
             android:textSize="10sp"

@@ -4,9 +4,11 @@ package com.example.gutman.shuffleparty;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,7 +29,6 @@ import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
@@ -36,11 +37,11 @@ import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.client.CallResult;
 import com.spotify.protocol.types.PlayerState;
 
-import kaaes.spotify.webapi.android.models.ErrorResponse;
 import kaaes.spotify.webapi.android.models.Track;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -75,11 +76,19 @@ public class PlaylistFragment extends Fragment
 	private PlayerState currentState;
 
 	private Handler handler;
-	private Runnable update;
+	private Runnable playerStateUpdateRunnable;
 
 	public PlaylistFragment()
 	{
 		// Required empty public constructor
+	}
+
+	@Override
+	public void onActivityCreated(@Nullable Bundle savedInstanceState)
+	{
+		super.onActivityCreated(savedInstanceState);
+		if (savedInstanceState != null)
+			index = savedInstanceState.getInt("idx");
 	}
 
 	@Override
@@ -110,9 +119,12 @@ public class PlaylistFragment extends Fragment
 		playlistView.setLayoutManager(new LinearLayoutManager(main));
 		playlistView.setHasFixedSize(true);
 
-		setupAppRemote();
-		trackAdapter = new SpotifyTrackAdapter(main);
+		playlistItems = new ArrayList<>();
+		trackAdapter = new SpotifyTrackAdapter(main, playlistItems);
 		trackAdapter.setItemSelectedListener(trackSelectedListener);
+		setupRecyclerViewDecor();
+
+		setupAppRemote();
 
 		return view;
 	}
@@ -125,8 +137,7 @@ public class PlaylistFragment extends Fragment
 		Bundle args = getArguments();
 		if (args != null)
 			roomIdentifer = args.getString("ident");
-
-		setupRecyclerView();
+		setupDatabaseListener();
 	}
 
 	private void setupAppRemote()
@@ -139,20 +150,32 @@ public class PlaylistFragment extends Fragment
 			public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
 			{
 				playerApi = mSpotifyAppRemote.getPlayerApi();
-				setupUpdateRunnable();
+
+				if (mSpotifyAppRemote.isConnected())
+				{
+					playerApi.getPlayerState().setResultCallback(new CallResult.ResultCallback<PlayerState>()
+					{
+						@Override
+						public void onResult(PlayerState mPlayerState)
+						{
+							currentState = mPlayerState;
+							setupUpdateRunnable();
+							if (mainActivity != null)
+								mainActivity.runOnUiThread(playerStateUpdateRunnable);
+							setupUI(currentState.track);
+						}
+					});
+					return;
+				}
 
 				current = playlistItems.get(index);
 				int dur = (int) current.duration_ms / 1000;
 				setupUI(current);
 
 				playerApi.play(current.uri);
-				if (mainActivity != null)
-					mainActivity.runOnUiThread(update);
-				else
-					handler.removeCallbacks(update);
 
 				progress.setMax(dur);
-				tvTrackDur.setText(SpotifyUtils.formatTimeDuration(dur));
+				tvTrackDur.setText(SpotifyUtils.formatTimeDuration(progress.getMax()));
 			}
 
 			@Override
@@ -165,7 +188,7 @@ public class PlaylistFragment extends Fragment
 
 	private void setupUpdateRunnable()
 	{
-		update = new Runnable()
+		playerStateUpdateRunnable = new Runnable()
 		{
 			@Override
 			public void run()
@@ -180,33 +203,21 @@ public class PlaylistFragment extends Fragment
 						String name = main.getClass().getSimpleName();
 						paused = currentState.isPaused;
 
-						// TODO: FIX TRACK END LOGIC - SOME TRACKS DONT END ON FIRST PLAY.
+						boolean end = false;
+						SpotifyAsyncTask spotifyTask = new SpotifyAsyncTask();
 
-						// Convert to double from long so I can do some decimal math with them.
-						// Meaning, I can subtract decimal values for the track end logic.
-						double elapsedSeconds = currentState.playbackPosition / 1000.0;
-						double elapsedSecondsRounded = Math.ceil(elapsedSeconds);
-
-						final double durationSeconds = current.duration_ms / 1000.0;
-
-						double decimal = durationSeconds % 1.0;
-						double end;
-
-						if (decimal <= 0.5)
-							end = Math.floor(durationSeconds - 2);
-						else
-							end = Math.floor(durationSeconds);
-
-						Log.d(name, "TIMER: ELAPSED " + elapsedSeconds);
-						Log.d(name, "TIMER: ELAPSED R " + elapsedSecondsRounded);
-						Log.d(name, "TIMER: DUR " + durationSeconds);
-						Log.d(name, "TIMER: END " + end);
-
-						progress.setProgress((int)elapsedSecondsRounded);
-						tvTrackElap.setText(SpotifyUtils.formatTimeDuration(progress.getProgress()));
-
-						if ((int)elapsedSecondsRounded >= (int)end)
+						try
 						{
+							end = spotifyTask.execute(currentState).get();
+						} catch (InterruptedException e)
+						{
+						} catch (ExecutionException e)
+						{
+						}
+
+						if (end)
+						{
+							Log.d(name, "TRACK END " + end);
 							if (index == playlistItems.size() - 1)
 								index = -1;
 
@@ -215,8 +226,6 @@ public class PlaylistFragment extends Fragment
 							setupUI(current);
 							playerApi.play(current.uri);
 						}
-
-						setupUpdateRunnable();
 					}
 				});
 				handler.postDelayed(this, 1000);
@@ -228,27 +237,34 @@ public class PlaylistFragment extends Fragment
 	{
 		int dur = (int) newTrack.duration_ms / 1000;
 		progress.setMax(dur);
-		tvTrackDur.setText(SpotifyUtils.formatTimeDuration(dur));
+		tvTrackDur.setText(SpotifyUtils.formatTimeDuration(progress.getMax()));
 
 		String aritstsFormatted = SpotifyUtils.toStringFromArtists(newTrack);
 		tvTrackTitleArtists.setText(newTrack.name + SpotifyConstants.SEPERATOR + aritstsFormatted);
 	}
 
-	private void setupRecyclerView()
+	private void setupUI(com.spotify.protocol.types.Track newTrack)
 	{
-		playlistItems = new ArrayList<>();
+		int dur = (int) newTrack.duration / 1000;
+		progress.setMax(dur);
+		tvTrackDur.setText(SpotifyUtils.formatTimeDuration(progress.getMax()));
 
+		String aritstsFormatted = SpotifyUtils.toStringFromArtists(newTrack);
+		tvTrackTitleArtists.setText(newTrack.name + SpotifyConstants.SEPERATOR + aritstsFormatted);
+	}
+
+	private void setupDatabaseListener()
+	{
 		// Get the database reference at the current connected room identifer.
 		DatabaseReference ref = FirebaseUtils.getCurrentRoomTrackReference(roomIdentifer);
 		// Set its event listener.
 		ref.addValueEventListener(valueEventListener);
 	}
 
-	private void addToAdapter()
+	private void setDataToAdapter()
 	{
 		trackAdapter.setData(playlistItems);
 		playlistView.setAdapter(trackAdapter);
-		setupRecyclerViewDecor();
 	}
 
 	private void setupRecyclerViewDecor()
@@ -292,10 +308,9 @@ public class PlaylistFragment extends Fragment
 				// Add it to the playlistItems.
 				if (!playlistItems.contains(t))
 					playlistItems.add(t);
-
 			}
 			// Setup the adapter
-			addToAdapter();
+			setDataToAdapter();
 		}
 
 		@Override
@@ -337,4 +352,40 @@ public class PlaylistFragment extends Fragment
 			}
 		}
 	};
+
+	public class SpotifyAsyncTask extends AsyncTask<PlayerState, Double, Boolean>
+	{
+		@Override
+		protected Boolean doInBackground(PlayerState... playerStates)
+		{
+			if (current == null)
+				return false;
+
+			PlayerState state = playerStates[0];
+
+			double elapsedSeconds = state.playbackPosition / 1000.0;
+			double elapsedSecondsRound = Math.ceil(elapsedSeconds);
+
+			publishProgress(elapsedSecondsRound);
+
+			double dur = current.duration_ms / 1000.0;
+
+			double decimal = (dur % 1.0) * 2.0;
+			double end = Math.floor(dur - decimal);
+
+			if ((int) elapsedSecondsRound >= (int) end)
+				return true;
+			else
+				return false;
+		}
+
+		@Override
+		protected void onProgressUpdate(Double... values)
+		{
+			super.onProgressUpdate(values);
+			double val = values[0];
+			progress.setProgress((int) val);
+			tvTrackElap.setText(SpotifyUtils.formatTimeDuration(progress.getProgress()));
+		}
+	}
 }

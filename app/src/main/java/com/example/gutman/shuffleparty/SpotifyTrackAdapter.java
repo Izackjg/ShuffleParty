@@ -82,32 +82,6 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		this.items = new ArrayList<>();
 	}
 
-	public void clearData()
-	{
-		items.clear();
-	}
-
-	public void addData(List<Track> items)
-	{
-		this.items.addAll(items);
-		notifyDataSetChanged();
-	}
-
-	public void addData(Track t) {
-		this.items.add(t);
-		notifyDataSetChanged();
-	}
-
-	public void setData(List<Track> items)
-	{
-		this.items = items;
-	}
-
-	public void setItemSelectedListener(TrackSelectedListener listener)
-	{
-		this.itemSelectedListener = listener;
-	}
-
 	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
 	{
@@ -123,10 +97,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		holder.title.setText(item.name);
 
 		if (item.explicit)
-			holder.explicity.setText("EXPLICIT");
-		else
-			holder.explicity.setVisibility(View.GONE);
-
+			holder.explicity.setVisibility(View.VISIBLE);
 
 		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + SpotifyConstants.SEPERATOR + item.album.name);
 
@@ -137,12 +108,40 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		Picasso.get().load(image.url).into(holder.image);
 	}
 
+	public void setItemSelectedListener(TrackSelectedListener listener)
+	{
+		this.itemSelectedListener = listener;
+	}
+
+	public void setData(List<Track> items)
+	{
+		this.items = items;
+		notifyDataSetChanged();
+	}
+
+	public void addData(List<Track> items)
+	{
+		this.items.addAll(items);
+		notifyDataSetChanged();
+	}
+
+	public void addData(Track item)
+	{
+		this.items.add(item);
+		notifyDataSetChanged();
+	}
+
 	public void deleteItem(int pos)
 	{
 		recentlyDeletedItem = items.get(pos);
 		recentlyDeletedPos = pos;
 		items.remove(pos);
 		notifyItemRemoved(pos);
+	}
+
+	public void clearData()
+	{
+		items.clear();
 	}
 
 	@Override
