@@ -49,6 +49,9 @@ import java.util.concurrent.ExecutionException;
 // TODO: SET ADMIN BOOLEAN BASED ON CURRENT USERNAME FROM DB - AND CHANGE VIEW BASED ON THAT.
 // TODO: SET ADMIN BASED ON PRODUCT TYPE - IF CREATOR IS OPEN - REMOVE IT FROM CREATOR - SET IT TO FIRST PREMIUM USER.
 
+// BUG: EXITING APP AND RETURNING TO PLAYLIST FRAGMENT CREATES DOUBLE OF PLAYLIST IN RECYCLER VIEW.
+// BUG (UNFIXIBLE?): ON RETURN TO PLAYLIST FRAGMENT FROM OTHER FRAGMENT, MUST RESTART PLAYLIST FROM BEGINNING.
+
 public class PlaylistFragment extends Fragment
 {
 	private String TAG = "PlaylistFragment";
@@ -63,8 +66,6 @@ public class PlaylistFragment extends Fragment
 	private Track current;
 	private String roomIdentifer;
 	private int index = 0;
-
-	private RelativeLayout fragPlayerLayout;
 
 	private RecyclerView playlistView;
 	private SpotifyTrackAdapter trackAdapter;
@@ -107,8 +108,6 @@ public class PlaylistFragment extends Fragment
 		// Inflate the layout for this fragment
 		View view = inflater.inflate(R.layout.fragment_playlist, container, false);
 
-		fragPlayerLayout = view.findViewById(R.id.frag_playerLayout);
-
 		btnPlayPause = view.findViewById(R.id.frag_btnPlayPause);
 		btnPlayPause.setOnClickListener(btnPlayPauseClickListener);
 
@@ -117,6 +116,7 @@ public class PlaylistFragment extends Fragment
 		tvTrackTitleArtists = view.findViewById(R.id.frag_tvTrackTitleArtist);
 
 		progress = view.findViewById(R.id.frag_seekbarProgress);
+		progress.setOnSeekBarChangeListener(seekBarChangeListener);
 
 		playlistView = view.findViewById(R.id.frag_playlistItemsView);
 
@@ -126,8 +126,6 @@ public class PlaylistFragment extends Fragment
 		playlistItems = new ArrayList<>();
 		trackAdapter = new SpotifyTrackAdapter(main, playlistItems);
 		trackAdapter.setItemSelectedListener(trackSelectedListener);
-		if (trackAdapter.getItemCount() != 0)
-			trackAdapter.clearData();
 		setupRecyclerViewDecor();
 
 		setupAppRemote();
@@ -154,7 +152,7 @@ public class PlaylistFragment extends Fragment
 		SpotifyAppRemote.connect(main, params, new Connector.ConnectionListener()
 		{
 			@Override
-			public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
+			public void onConnected(final SpotifyAppRemote mSpotifyAppRemote)
 			{
 				playerApi = mSpotifyAppRemote.getPlayerApi();
 
@@ -172,6 +170,11 @@ public class PlaylistFragment extends Fragment
 						@Override
 						public void onResult(PlayerState playerState)
 						{
+							if (playerState.isPaused)
+							{
+								SpotifyAppRemote.disconnect(mSpotifyAppRemote);
+								return;
+							}
 							currentState = playerState;
 							mainActivity.runOnUiThread(playerStateUpdateRunnable);
 							setupUI(currentState.track);
@@ -319,6 +322,31 @@ public class PlaylistFragment extends Fragment
 		}
 	};
 
+	private SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener()
+	{
+		@Override
+		public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+		{
+			if (fromUser)
+			{
+				playerApi.seekTo(progress * 1000);
+				seekBar.setProgress(progress);
+			}
+		}
+
+		@Override
+		public void onStartTrackingTouch(SeekBar seekBar)
+		{
+
+		}
+
+		@Override
+		public void onStopTrackingTouch(SeekBar seekBar)
+		{
+
+		}
+	};
+
 	private Runnable playerStateUpdateRunnable = new Runnable()
 	{
 		@Override
@@ -338,7 +366,8 @@ public class PlaylistFragment extends Fragment
 					paused = currentState.isPaused;
 
 					// Has the track ended? Default is false, because it hasn't ended.
-					boolean end = false;
+					boolean hasTrackEnded = false;
+
 					// Create a new SpotifyAsnycTask which deals with the small task of calculations based on the current
 					// track and it's duration.
 					SpotifyAsyncTask spotifyTask = new SpotifyAsyncTask();
@@ -346,7 +375,7 @@ public class PlaylistFragment extends Fragment
 					try
 					{
 						// Get the result of the execution. This returns a boolean.
-						end = spotifyTask.execute(currentState).get();
+						hasTrackEnded = spotifyTask.execute(currentState).get();
 					} catch (InterruptedException e)
 					{
 					} catch (ExecutionException e)
@@ -354,7 +383,7 @@ public class PlaylistFragment extends Fragment
 					}
 
 					// If the boolean is true, then the track has ended.
-					if (end)
+					if (hasTrackEnded)
 					{
 						boolean isNull = current == null;
 						endOfTrack(isNull);
@@ -381,11 +410,12 @@ public class PlaylistFragment extends Fragment
 			setupUI(current);
 			playerApi.play(current.uri);
 		}
+
 		// If current is null, that means we have just returned from navigating another fragment.
 		// This means that index will be 0, and if we didn't do this check,
 		// it would update the current track to be the second in the list,
 		// although that might not be the case since we have just returned from navigating another fragment,
-		// meaning that the current track is the player state track.
+		// meaning that the current track could be the player state track.
 
 		// Here we just reset the index to 0 and restart the playlist.
 		else
