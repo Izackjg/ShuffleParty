@@ -21,15 +21,12 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.example.gutman.shuffleparty.data.UserPrivateExtension;
-import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
@@ -39,7 +36,6 @@ import com.spotify.protocol.client.CallResult;
 import com.spotify.protocol.types.PlayerState;
 
 import kaaes.spotify.webapi.android.models.Track;
-import kaaes.spotify.webapi.android.models.UserPrivate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +52,9 @@ public class PlaylistFragment extends Fragment
 {
 	private String TAG = "PlaylistFragment";
 
-	private boolean admin = true;
+	private DatabaseReference usersRef;
+	private DatabaseReference trackRef;
+
 	private boolean paused;
 
 	private Context main;
@@ -64,7 +62,7 @@ public class PlaylistFragment extends Fragment
 
 	private List<Track> playlistItems;
 	private Track current;
-	private String roomIdentifer;
+	private String roomIdentifier;
 	private int index = 0;
 
 	private RecyclerView playlistView;
@@ -98,7 +96,7 @@ public class PlaylistFragment extends Fragment
 		handler = new Handler();
 
 		// Inflate the layout for this fragment
-		View view = inflater.inflate(R.layout.fragment_playlist_admin, container, false);
+		View view = inflater.inflate(R.layout.fragment_playlist, container, false);
 
 		btnPlayPause = view.findViewById(R.id.frag_btnPlayPause_admin);
 		btnPlayPause.setOnClickListener(btnPlayPauseClickListener);
@@ -132,9 +130,12 @@ public class PlaylistFragment extends Fragment
 
 		Bundle args = getArguments();
 		if (args != null)
-			roomIdentifer = args.getString("ident");
+			roomIdentifier = args.getString("ident");
 
-		setupDatabaseListener();
+		usersRef = FirebaseUtils.getUsersReference(roomIdentifier);
+
+		trackRef = FirebaseUtils.getTrackReference(roomIdentifier);
+		trackRef.addValueEventListener(valueEventListener);
 	}
 
 	private void setupAppRemote()
@@ -205,14 +206,6 @@ public class PlaylistFragment extends Fragment
 		tvTrackTitleArtists.setText(newTrack.name + SpotifyConstants.SEPERATOR + aritstsFormatted);
 	}
 
-	private void setupDatabaseListener()
-	{
-		// Get the database reference at the current connected room identifer.
-		DatabaseReference ref = FirebaseUtils.getCurrentRoomTrackReference(roomIdentifer);
-		// Set its event listener.
-		ref.addValueEventListener(valueEventListener);
-	}
-
 	private void setDataToAdapter()
 	{
 		trackAdapter.setData(playlistItems);
@@ -227,21 +220,39 @@ public class PlaylistFragment extends Fragment
 			@Override
 			public void onSwipedDelete(int position)
 			{
-				if (position > index || position < index)
-					return;
-				if (position == playlistItems.size() - 1)
-					index = 0;
-				else
-					index = position + 1;
-
 				trackAdapter.deleteItem(position);
-				current = playlistItems.get(index);
-				playerApi.play(current.uri);
-				setupUI(current);
+				String uri = trackAdapter.getRecentlyDeletedItem().uri;
+				playlistItems = trackAdapter.getItems();
+				playlistView.setAdapter(trackAdapter);
+				deleteTrack(uri);
 			}
 		}, icon));
 		touchHelper.attachToRecyclerView(playlistView);
 	}
+
+	private void deleteTrack(String uri)
+	{
+		trackRef.orderByChild("uri").equalTo(uri).addListenerForSingleValueEvent(new ValueEventListener()
+		{
+			@Override
+			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+			{
+				for (DataSnapshot ds : dataSnapshot.getChildren())
+				{
+					Log.d(main.getClass().getSimpleName(), "LOGGING: key " + ds.getKey());
+					Log.d(main.getClass().getSimpleName(), "LOGGING: count " + ds.getChildrenCount());
+					trackRef.child(ds.getKey()).removeValue();
+				}
+			}
+
+			@Override
+			public void onCancelled(@NonNull DatabaseError databaseError)
+			{
+
+			}
+		});
+	}
+
 
 	// Has events about data changes at a location.
 	// In this specific case, the location is at the current connected room reference.
@@ -253,8 +264,6 @@ public class PlaylistFragment extends Fragment
 			// DataSnapshot is used everytime, containing data from a Firebase Database location.
 			// Any time you read Database data, I will receive the data as a DataSnapshot.
 
-			String name = main.getClass().getSimpleName();
-
 			playlistItems.clear();
 
 			// For all the children in the DataSnapshot
@@ -262,8 +271,6 @@ public class PlaylistFragment extends Fragment
 			{
 				// Get the value, and convert it from Object to a Spotify Track.
 				Track t = ds.getValue(Track.class);
-				Log.d(name, "LOGGING: TRACK " + t);
-				Log.d(name, "LOGGING: CONTAINS " + playlistItems.contains(t));
 				// Add it to the playlistItems.
 				playlistItems.add(t);
 			}

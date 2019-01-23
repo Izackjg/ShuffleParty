@@ -2,7 +2,6 @@ package com.example.gutman.shuffleparty.utils;
 
 import android.support.annotation.NonNull;
 import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
-import android.util.Log;
 
 import com.example.gutman.shuffleparty.data.Room;
 import com.example.gutman.shuffleparty.data.UserPrivateExtension;
@@ -25,34 +24,21 @@ public class FirebaseUtils
 	public static final FirebaseDatabase DATABASE = FirebaseDatabase.getInstance();
 	public static final DatabaseReference ROOM_REF = DATABASE.getReference().child("Rooms");
 
-	public static void createRoomToDatabase(Room room)
-	{
-		DatabaseReference roomRef = ROOM_REF.child(room.getIdentifier());
-		DatabaseReference userRef = roomRef.child("users").push();
-
-		for (UserPrivate u : room.getConnectedUsers())
-		{
-			if (u != null)
-				userRef.setValue(u);
-		}
-	}
-
-	public static void createRoomToDatabase(Room room, String createdAt)
+	public static void addRoomToDatabase(Room room, String createdAt)
 	{
 		DatabaseReference roomRef = ROOM_REF.child(room.getIdentifier());
 		roomRef.child("created").setValue(createdAt);
-		DatabaseReference userRef = roomRef.child("users").push();
 
 		for (UserPrivate u : room.getConnectedUsers())
 		{
 			if (u != null)
-				userRef.setValue(u);
+				addUserToRoom(room.getIdentifier(), (UserPrivateExtension) u);
 		}
 	}
 
 	public static void addUserToRoom(String identifier, UserPrivateExtension u)
 	{
-		DatabaseReference currentRoomUserRef = getCurrentRoomUsersReference(identifier);
+		DatabaseReference currentRoomUserRef = getUsersReference(identifier);
 		DatabaseReference pushedRef = currentRoomUserRef.push();
 
 		pushedRef.setValue(u);
@@ -60,63 +46,23 @@ public class FirebaseUtils
 
 	public static void addTrackToDatabase(String identifier, Track t)
 	{
-		DatabaseReference currentRoomTrackRef = getCurrentRoomTrackReference(identifier);
+		DatabaseReference currentRoomTrackRef = getTrackReference(identifier);
 		currentRoomTrackRef.push().setValue(t);
 	}
 
-	public static DatabaseReference getCurrentRoomTrackReference(String identifer)
+	public static DatabaseReference getTrackReference(String identifer)
 	{
 		return ROOM_REF.child(identifer).child("tracks");
 	}
 
-	public static DatabaseReference getCurrentRoomUsersReference(String identifier)
+	public static DatabaseReference getUsersReference(String identifier)
 	{
 		return ROOM_REF.child(identifier).child("users");
-	}
-
-	// TODO: ADD A PARAMETER TO THIS - DATABASEREF
-	// TODO: THEN ADD THE LISTENER TO THE REF AND USE THAT IN THE PLAYLISTFRAGMENT. HAVING IT RETURN THE LIST.
-	public static List<Track> getTracksFromDatabase(String identifer)
-	{
-		final List<Track> trackList = new ArrayList<>();
-
-		DatabaseReference currentRoomRef = ROOM_REF.child(identifer).child("tracks");
-		currentRoomRef.addValueEventListener(new ValueEventListener()
-		{
-			@Override
-			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-			{
-				for (DataSnapshot ds : dataSnapshot.getChildren())
-				{
-					Track t = ds.getValue(Track.class);
-					trackList.add(t);
-				}
-			}
-
-			@Override
-			public void onCancelled(@NonNull DatabaseError databaseError)
-			{
-
-			}
-		});
-
-		return trackList;
 	}
 
 	public static void deleteRoomFromDatabase(String identifer)
 	{
 		DatabaseReference ref = ROOM_REF.child(identifer);
 		ref.removeValue();
-	}
-
-	private static String getAlbumArtists(Track item)
-	{
-		List<String> names = new ArrayList<>();
-		for (ArtistSimple i : item.artists)
-		{
-			names.add(i.name);
-		}
-		Joiner joiner = Joiner.on(", ");
-		return joiner.join(names);
 	}
 }

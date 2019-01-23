@@ -8,9 +8,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 
+import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 // TODO: DELETE USER WHEN HE HITS EXIT ROOM BUTTON. IF ADMIN PROMT FOR LEAVE ONLY OR DELETE ROOM.
 
@@ -18,7 +23,7 @@ public class FragmentControlActivity extends AppCompatActivity
 {
 	private BottomNavigationView navView;
 	private String roomIdentifier;
-	private String username;
+	private String uri;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -30,7 +35,8 @@ public class FragmentControlActivity extends AppCompatActivity
 		navView.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener);
 
 		roomIdentifier = getIntent().getStringExtra("ident");
-		username = CredentialsHandler.getUserDisplayName(this);
+
+		uri = CredentialsHandler.getUserUri(this);
 
 		Bundle b = new Bundle();
 		b.putString("ident", roomIdentifier);
@@ -94,12 +100,6 @@ public class FragmentControlActivity extends AppCompatActivity
 							fragment = new UsersFragment();
 							fragment.setArguments(b);
 							loadFragment(fragment);
-							return true;
-						case R.id.navigation_exit:
-							//FirebaseUtils.deleteRoomFromDatabase(roomIdentifier);
-							Intent i = new Intent(getBaseContext(), RoomControlActivity.class);
-							startActivity(i);
-							finish();
 							return true;
 					}
 

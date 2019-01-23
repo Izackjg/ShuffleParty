@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.TimeUnit;
 
+import kaaes.spotify.webapi.android.models.UserPrivate;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -44,7 +45,7 @@ public class CredentialsHandler
 	private static final String ACCESS_TOKEN = "access_token";
 	private static final String EXPIRES_AT = "expires_at";
 
-	private static final String DISPLAY_NAME = "display_name";
+	private static final String URI = "uri";
 	private static final String PRODUCT_TYPE = "product_type";
 
 	public static void clearAll(Context context)
@@ -55,15 +56,14 @@ public class CredentialsHandler
 		sharedPreferences.edit().clear().commit();
 	}
 
-	public static void setUserInfo(Context context, String displayName, String product)
+	public static void setUserInfo(Context context, UserPrivate u)
 	{
 		Context appContext = context.getApplicationContext();
 
 		SharedPreferences sharedPref = getSharedPref(appContext);
 		SharedPreferences.Editor editor = sharedPref.edit();
 
-		editor.putString(DISPLAY_NAME, displayName);
-		editor.putString(PRODUCT_TYPE, product);
+		editor.putString(URI, u.uri);
 		editor.apply();
 	}
 
@@ -99,24 +99,14 @@ public class CredentialsHandler
 		return token;
 	}
 
-	public static String getUserDisplayName(Context context)
+	public static String getUserUri(Context context)
 	{
 		Context appContext = context.getApplicationContext();
 
 		SharedPreferences sharedPref = getSharedPref(appContext);
-		String displayName = sharedPref.getString(DISPLAY_NAME, "");
+		String uri = sharedPref.getString(URI, "");
 
-		return displayName;
-	}
-
-	public static String getUserProduct(Context context)
-	{
-		Context appContext = context.getApplicationContext();
-
-		SharedPreferences sharedPref = getSharedPref(appContext);
-		String product = sharedPref.getString(PRODUCT_TYPE, "");
-
-		return product;
+		return uri;
 	}
 
 	private static SharedPreferences getSharedPref(Context appContext)

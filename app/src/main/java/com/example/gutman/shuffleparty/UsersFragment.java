@@ -79,7 +79,7 @@ public class UsersFragment extends Fragment
 	private void setupRecyclerView()
 	{
 		// Get the database reference at the current connected room identifer.
-		DatabaseReference ref = FirebaseUtils.getCurrentRoomUsersReference(roomIdentifer);
+		DatabaseReference ref = FirebaseUtils.getUsersReference(roomIdentifer);
 		// Set its value event listener.
 		ref.addValueEventListener(valueEventListener);
 	}

@@ -146,7 +146,7 @@ public class SearchFragment extends Fragment
 						searchResults.setAdapter(adapter);
 					}
 				});
-				
+
 				return true;
 			}
 

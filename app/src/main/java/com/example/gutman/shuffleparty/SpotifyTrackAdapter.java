@@ -38,7 +38,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		private CardView rootCardView;
 		private final TextView title;
 		private final TextView artist;
-		private final TextView explicity;
+		private final TextView explicit;
 		private final ImageView image;
 		private int index;
 
@@ -49,7 +49,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 			title = itemView.findViewById(R.id.entityTitle);
 			artist = itemView.findViewById(R.id.entityArtist);
 			image = itemView.findViewById(R.id.entityImage);
-			explicity = itemView.findViewById(R.id.entityExplicity);
+			explicit = itemView.findViewById(R.id.entityExplicity);
 			itemView.setOnClickListener(this);
 		}
 
@@ -92,9 +92,9 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		holder.title.setText(item.name);
 
 		if (item.explicit)
-			holder.explicity.setVisibility(View.VISIBLE);
+			holder.explicit.setVisibility(View.VISIBLE);
 		else
-			holder.explicity.setVisibility(View.GONE);
+			holder.explicit.setVisibility(View.GONE);
 
 		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + SpotifyConstants.SEPERATOR + item.album.name);
 
@@ -135,9 +135,9 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		items.clear();
 	}
 
-	public List<Track> getItems()
+	public Track getRecentlyDeletedItem()
 	{
-		return items;
+		return recentlyDeletedItem;
 	}
 
 	@Override
@@ -147,5 +147,10 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 			return 0;
 
 		return items.size();
+	}
+
+	public List<Track> getItems()
+	{
+		return items;
 	}
 }

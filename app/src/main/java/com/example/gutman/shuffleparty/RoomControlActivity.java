@@ -87,7 +87,7 @@ public class RoomControlActivity extends AppCompatActivity
 				if (!admin)
 					admin = userPrivate.display_name.equals("pyschopenguin");
 
-				CredentialsHandler.setUserInfo(getBaseContext(), userPrivate.display_name, userPrivate.product);
+				CredentialsHandler.setUserInfo(getBaseContext(), userPrivate);
 			}
 
 			@Override
@@ -108,8 +108,6 @@ public class RoomControlActivity extends AppCompatActivity
 		String dateFormatted = df.format(Calendar.getInstance().getTime());
 
 		// Create a new UserExtension that contains it's permissions.
-		// In this case, on creation of the room the permission for that user is an Admin.
-
 		extension = new UserPrivateExtension(userPrivate, admin, in);
 
 		// Add it to the list of users.
@@ -119,7 +117,7 @@ public class RoomControlActivity extends AppCompatActivity
 		Room r = new Room(userList);
 
 		// Add that room the to database.
-		FirebaseUtils.createRoomToDatabase(r, dateFormatted);
+		FirebaseUtils.addRoomToDatabase(r, dateFormatted);
 
 		// Start the FragmentControlActivity, passing on the room identifer.
 		// This allows us to pass the room identifer to all the fragments.
@@ -130,7 +128,7 @@ public class RoomControlActivity extends AppCompatActivity
 	public void btnJoinRoom_onClick(View view)
 	{
 		// Get the code from the EditText, and then change it to fully uppercase - incase the user entered it in lowercase.
-		final String roomCodeText = etRoomCode.getText().toString().toUpperCase();
+		final String roomCodeText = etRoomCode.getText().toString().toUpperCase().trim();
 		if (roomCodeText.equals("") || roomCodeText.equals(" "))
 		{
 			Toast.makeText(this, "Room code cannot be an empty charachter literal.", Toast.LENGTH_SHORT).show();
@@ -146,21 +144,19 @@ public class RoomControlActivity extends AppCompatActivity
 			@Override
 			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
 			{
-				// If the snapshot (Database data (comes in a snapshot object)) has the child of the entered room code,
-				if (dataSnapshot.hasChild(roomCodeText)){
-					// then in this case the PermissionType is a regular user, since they are joining the room, and not creating it.
-					extension = new UserPrivateExtension(userPrivate, admin, in);
-					// Add the user to the specific room.
-					FirebaseUtils.addUserToRoom(roomCodeText, extension);
-					// Start the FragmentControlActivity, passing on the room identifer.
-					// This allows us to pass the room identifer to all the fragments.
-					// Having the room identifer access allows us to get/add items from and to the database.
-					startFragmentActivityHolder(roomCodeText);
-				}
-				// Else the room code is faulty, meaning it doesn't exist.
-				else {
+				if (!dataSnapshot.hasChild(roomCodeText))
+				{
 					Toast.makeText(RoomControlActivity.this, "Room does not exist.", Toast.LENGTH_LONG).show();
+					return;
 				}
+
+				extension = new UserPrivateExtension(userPrivate, admin, in);
+				// Add the user to the specific room.
+				FirebaseUtils.addUserToRoom(roomCodeText, extension);
+				// Start the FragmentControlActivity, passing on the room identifer.
+				// This allows us to pass the room identifer to all the fragments.
+				// Having the room identifer access allows us to get/add items from and to the database.
+				startFragmentActivityHolder(roomCodeText);
 			}
 
 			@Override
@@ -172,7 +168,8 @@ public class RoomControlActivity extends AppCompatActivity
 
 	}
 
-	private void startFragmentActivityHolder(String identifer){
+	private void startFragmentActivityHolder(String identifer)
+	{
 		Intent i = new Intent(getBaseContext(), FragmentControlActivity.class);
 		i.putExtra("ident", identifer);
 		startActivity(i);
