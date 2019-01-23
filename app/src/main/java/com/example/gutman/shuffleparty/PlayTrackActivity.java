@@ -63,7 +63,7 @@ public class PlayTrackActivity extends Activity
 		spotify = SpotifyUtils.getInstance(apiToken);
 
 		playerProgress = findViewById(R.id.playerProgress);
-		trackImageView = findViewById(R.id.trackImage);
+		trackImageView = findViewById(R.id.frag_track_image_user);
 		btnPlay = findViewById(R.id.btnPlay);
 
 		tvTrackArtists = findViewById(R.id.tvTrackArtists);

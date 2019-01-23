@@ -88,7 +88,7 @@ public class SpotifyUtils
 			String tFormat = getSpecificFormattedValues(tracks.get(i)).toLowerCase();
 			String currentStateTrackFormat = getSpecificFormattedValues(currentStateTrack).toLowerCase();
 			if (tFormat.equals(currentStateTrackFormat))
-				return i;
+				return i + 1;
 		}
 		return -1;
 	}

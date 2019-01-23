@@ -7,10 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.ContactsContract;
-import android.service.autofill.Dataset;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,19 +18,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
@@ -43,12 +39,11 @@ import com.spotify.protocol.client.CallResult;
 import com.spotify.protocol.types.PlayerState;
 
 import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.UserPrivate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 // TODO: ON TRACK REMOVE - DELETE FROM DATABASE - CURRENTLY ONLY CLIENT SIDE.
 // TODO: SET ADMIN BOOLEAN BASED ON CURRENT USERNAME FROM DB - AND CHANGE VIEW BASED ON THAT.
@@ -103,19 +98,19 @@ public class PlaylistFragment extends Fragment
 		handler = new Handler();
 
 		// Inflate the layout for this fragment
-		View view = inflater.inflate(R.layout.fragment_playlist, container, false);
+		View view = inflater.inflate(R.layout.fragment_playlist_admin, container, false);
 
-		btnPlayPause = view.findViewById(R.id.frag_btnPlayPause);
+		btnPlayPause = view.findViewById(R.id.frag_btnPlayPause_admin);
 		btnPlayPause.setOnClickListener(btnPlayPauseClickListener);
 
-		tvTrackDur = view.findViewById(R.id.frag_tvTrackDur);
-		tvTrackElap = view.findViewById(R.id.frag_tvTrackElap);
-		tvTrackTitleArtists = view.findViewById(R.id.frag_tvTrackTitleArtist);
+		tvTrackDur = view.findViewById(R.id.frag_tvTrackDur_admin);
+		tvTrackElap = view.findViewById(R.id.frag_tvTrackElap_admin);
+		tvTrackTitleArtists = view.findViewById(R.id.frag_tvTrackTitleArtist_admin);
 
-		progress = view.findViewById(R.id.frag_seekbarProgress);
+		progress = view.findViewById(R.id.frag_seekbarProgress_admin);
 		progress.setOnSeekBarChangeListener(seekBarChangeListener);
 
-		playlistView = view.findViewById(R.id.frag_playlistItemsView);
+		playlistView = view.findViewById(R.id.frag_playlistItemsView_admin);
 
 		playlistView.setLayoutManager(new LinearLayoutManager(main));
 		playlistView.setHasFixedSize(true);
@@ -414,7 +409,6 @@ public class PlaylistFragment extends Fragment
 			// Get index based on if the two track names and artists are equal. (kaaes Track &
 			// com.spotify.protocol.types.Track stateTrack)
 			index = currentState.track == null ? 0 : SpotifyUtils.getIndex(playlistItems, currentState.track);
-			Log.d(main.getClass().getSimpleName(), "INDEX LOG: " + index);
 			current = playlistItems.get(index);
 			setupUI(current);
 			playerApi.play(current.uri);
@@ -479,7 +473,6 @@ public class PlaylistFragment extends Fragment
 		{
 			super.onProgressUpdate(values);
 			double val = values[0];
-			Log.d(TAG, "LOGGING DEBUG val " + val);
 			progress.setProgress((int) val);
 			tvTrackElap.setText(SpotifyUtils.formatTimeDuration(progress.getProgress()));
 		}

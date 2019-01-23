@@ -28,8 +28,11 @@ import java.util.List;
 import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.FeaturedPlaylists;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.TracksPager;
+import retrofit.Callback;
+import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 /**
@@ -143,6 +146,7 @@ public class SearchFragment extends Fragment
 						searchResults.setAdapter(adapter);
 					}
 				});
+				
 				return true;
 			}
 

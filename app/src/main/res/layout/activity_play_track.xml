@@ -6,7 +6,7 @@
     android:background="@color/white">
 
     <ImageView
-        android:id="@+id/trackImage"
+        android:id="@+id/frag_track_image_user"
         android:layout_width="match_parent"
         android:layout_height="330dp"/>
 
@@ -17,7 +17,7 @@
         android:maxLines="1"
         android:textSize="22sp"
         android:gravity="center"
-        android:layout_below="@id/trackImage"
+        android:layout_below="@id/frag_track_image_user"
         android:textStyle="bold"
         android:layout_centerHorizontal="true"/>
 
