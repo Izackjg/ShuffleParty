@@ -7,6 +7,8 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.ContactsContract;
+import android.service.autofill.Dataset;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -28,6 +30,7 @@ import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,8 +45,10 @@ import com.spotify.protocol.types.PlayerState;
 import kaaes.spotify.webapi.android.models.Track;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // TODO: ON TRACK REMOVE - DELETE FROM DATABASE - CURRENTLY ONLY CLIENT SIDE.
 // TODO: SET ADMIN BOOLEAN BASED ON CURRENT USERNAME FROM DB - AND CHANGE VIEW BASED ON THAT.
@@ -86,14 +91,6 @@ public class PlaylistFragment extends Fragment
 	public PlaylistFragment()
 	{
 		// Required empty public constructor
-	}
-
-	@Override
-	public void onActivityCreated(@Nullable Bundle savedInstanceState)
-	{
-		super.onActivityCreated(savedInstanceState);
-		if (savedInstanceState != null)
-			index = savedInstanceState.getInt("idx");
 	}
 
 	@Override
@@ -170,11 +167,6 @@ public class PlaylistFragment extends Fragment
 						@Override
 						public void onResult(PlayerState playerState)
 						{
-							if (playerState.isPaused)
-							{
-								SpotifyAppRemote.disconnect(mSpotifyAppRemote);
-								return;
-							}
 							currentState = playerState;
 							mainActivity.runOnUiThread(playerStateUpdateRunnable);
 							setupUI(currentState.track);
@@ -183,14 +175,10 @@ public class PlaylistFragment extends Fragment
 				} else
 				{
 					current = playlistItems.get(index);
-					int dur = (int) current.duration_ms / 1000;
 					setupUI(current);
 
 					playerApi.play(current.uri);
 					mainActivity.runOnUiThread(playerStateUpdateRunnable);
-
-					progress.setMax(dur);
-					tvTrackDur.setText(SpotifyUtils.formatTimeDuration(progress.getMax()));
 				}
 			}
 
@@ -270,16 +258,19 @@ public class PlaylistFragment extends Fragment
 			// DataSnapshot is used everytime, containing data from a Firebase Database location.
 			// Any time you read Database data, I will receive the data as a DataSnapshot.
 
+			String name = main.getClass().getSimpleName();
+
+			playlistItems.clear();
+
 			// For all the children in the DataSnapshot
 			for (DataSnapshot ds : dataSnapshot.getChildren())
 			{
 				// Get the value, and convert it from Object to a Spotify Track.
 				Track t = ds.getValue(Track.class);
+				Log.d(name, "LOGGING: TRACK " + t);
+				Log.d(name, "LOGGING: CONTAINS " + playlistItems.contains(t));
 				// Add it to the playlistItems.
-				if (!playlistItems.contains(t))
-				{
-					playlistItems.add(t);
-				}
+				playlistItems.add(t);
 			}
 			// Setup the adapter
 			setDataToAdapter();
@@ -420,7 +411,10 @@ public class PlaylistFragment extends Fragment
 		// Here we just reset the index to 0 and restart the playlist.
 		else
 		{
-			index = 0;
+			// Get index based on if the two track names and artists are equal. (kaaes Track &
+			// com.spotify.protocol.types.Track stateTrack)
+			index = currentState.track == null ? 0 : SpotifyUtils.getIndex(playlistItems, currentState.track);
+			Log.d(main.getClass().getSimpleName(), "INDEX LOG: " + index);
 			current = playlistItems.get(index);
 			setupUI(current);
 			playerApi.play(current.uri);

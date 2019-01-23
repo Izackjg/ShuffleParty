@@ -46,6 +46,7 @@ public class RoomControlActivity extends AppCompatActivity
 
 	private SpotifyService spotify;
 
+	private boolean admin = false;
 	private String apiToken = null;
 
 	@Override
@@ -82,6 +83,10 @@ public class RoomControlActivity extends AppCompatActivity
 				userPrivate = mUserPrivate;
 				userPrivate.writeToParcel(in, 0);
 
+				admin = userPrivate.product.equals("premium");
+				if (!admin)
+					admin = userPrivate.display_name.equals("pyschopenguin");
+
 				CredentialsHandler.setUserInfo(getBaseContext(), userPrivate.display_name, userPrivate.product);
 			}
 
@@ -97,17 +102,15 @@ public class RoomControlActivity extends AppCompatActivity
 	{
 		final List<UserPrivate> userList = new ArrayList<>();
 		if (userPrivate == null || in == null)
-		{
-			clearCredentials();
 			return;
-		}
 
 		DateFormat df = new SimpleDateFormat("EEE, MMM d, yyyy HH:mm");
 		String dateFormatted = df.format(Calendar.getInstance().getTime());
 
 		// Create a new UserExtension that contains it's permissions.
 		// In this case, on creation of the room the permission for that user is an Admin.
-		extension = new UserPrivateExtension(userPrivate, true, in);
+
+		extension = new UserPrivateExtension(userPrivate, admin, in);
 
 		// Add it to the list of users.
 		userList.add(extension);
@@ -146,7 +149,7 @@ public class RoomControlActivity extends AppCompatActivity
 				// If the snapshot (Database data (comes in a snapshot object)) has the child of the entered room code,
 				if (dataSnapshot.hasChild(roomCodeText)){
 					// then in this case the PermissionType is a regular user, since they are joining the room, and not creating it.
-					extension = new UserPrivateExtension(userPrivate, false, in);
+					extension = new UserPrivateExtension(userPrivate, admin, in);
 					// Add the user to the specific room.
 					FirebaseUtils.addUserToRoom(roomCodeText, extension);
 					// Start the FragmentControlActivity, passing on the room identifer.
@@ -175,10 +178,4 @@ public class RoomControlActivity extends AppCompatActivity
 		startActivity(i);
 	}
 
-	private void clearCredentials(){
-		CredentialsHandler.clearAll(this);
-		Intent i = new Intent(this, LoginActivity.class);
-		startActivity(i);
-		finish();
-	}
 }
