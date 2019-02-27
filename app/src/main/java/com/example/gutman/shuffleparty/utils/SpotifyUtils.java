@@ -85,9 +85,8 @@ public class SpotifyUtils
 
 	public static int getIndex(List<Track> tracks, com.spotify.protocol.types.Track currentStateTrack) {
 		for (int i = 0; i < tracks.size(); i++) {
-			String tFormat = getSpecificFormattedValues(tracks.get(i)).toLowerCase();
-			String currentStateTrackFormat = getSpecificFormattedValues(currentStateTrack).toLowerCase();
-			if (tFormat.equals(currentStateTrackFormat))
+			Track t = tracks.get(i);
+			if (t.uri.equals(currentStateTrack.uri))
 				return i + 1;
 		}
 		return -1;

@@ -15,26 +15,8 @@
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:gravity="center"
+            android:layout_centerInParent="true"
             android:textColor="@color/colorPrimary"
             android:textSize="48sp"/>
-
-        <Button
-            android:id="@+id/frag_btnDisconnect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/tvRoomHomeIdentifier"
-            android:layout_centerHorizontal="true"
-            android:padding="20dp"
-            android:text="Disconnect"/>
-
-        <Button
-            android:id="@+id/frag_btnDeleteRoom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/frag_btnDisconnect"
-            android:layout_centerHorizontal="true"
-            android:padding="20dp"
-            android:text="Delete Room"/>
-
     </RelativeLayout>
 </FrameLayout>

@@ -76,6 +76,7 @@ public class PlaylistFragment extends Fragment
 
 	private SeekBar progress;
 
+	private SpotifyAppRemote spotifyAppRemote;
 	private PlayerApi playerApi;
 	private PlayerState currentState;
 
@@ -147,14 +148,12 @@ public class PlaylistFragment extends Fragment
 			@Override
 			public void onConnected(final SpotifyAppRemote mSpotifyAppRemote)
 			{
-				playerApi = mSpotifyAppRemote.getPlayerApi();
+				spotifyAppRemote = mSpotifyAppRemote;
+				playerApi = spotifyAppRemote.getPlayerApi();
 
-				//				String product = CredentialsHandler.getUserProduct(main);
-				//				Log.d(TAG, "PRODUCT: " + product);
-				//				if (product.equals("free") || product.equals("open")) {
-				//					Toast.makeText(main, "You have a free account, only Spotify Premium users can stream.", Toast.LENGTH_LONG).show();
-				//					return;
-				//				}
+				if (spotifyAppRemote == null || playerApi == null) {
+					SpotifyAppRemote.disconnect(spotifyAppRemote);
+				}
 
 				if (mSpotifyAppRemote.isConnected())
 				{
@@ -410,12 +409,15 @@ public class PlaylistFragment extends Fragment
 		// although that might not be the case since we have just returned from navigating another fragment,
 		// meaning that the current track could be the player state track.
 
-		// Here we just reset the index to 0 and restart the playlist.
 		else
 		{
-			// Get index based on if the two track names and artists are equal. (kaaes Track &
-			// com.spotify.protocol.types.Track stateTrack)
+			// Get index based on if the two track uri's are equal.
 			index = currentState.track == null ? 0 : SpotifyUtils.getIndex(playlistItems, currentState.track);
+			// If that method returned -1, it means the current state playing track isn't in the playing.
+			// Threfore, at the end of that current state track, set the index to 0. Therefore forcing playing the first track.
+			if (index == -1)
+				index = 0;
+
 			current = playlistItems.get(index);
 			setupUI(current);
 			playerApi.play(current.uri);

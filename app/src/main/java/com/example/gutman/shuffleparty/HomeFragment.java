@@ -1,6 +1,7 @@
 package com.example.gutman.shuffleparty;
 
 
+import android.content.Context;
 import android.os.Bundle;
 import android.print.PrinterId;
 import android.support.annotation.NonNull;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.google.firebase.database.DataSnapshot;
@@ -22,6 +24,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.UserPrivate;
 
 
 /**
@@ -29,13 +32,7 @@ import kaaes.spotify.webapi.android.models.Track;
  */
 public class HomeFragment extends Fragment
 {
-	private DatabaseReference userRef;
-
 	private TextView tvHomeRoomIdentifier;
-	private Button btnDisconnect;
-	private Button btnDeleteRoom;
-
-	private String userUri;
 	private String roomIdentifier;
 
 	public HomeFragment()
@@ -59,50 +56,6 @@ public class HomeFragment extends Fragment
 			tvHomeRoomIdentifier.setText(roomIdentifier);
 		}
 
-		userUri = CredentialsHandler.getUserUri(container.getContext());
-		userRef = FirebaseUtils.getUsersReference(roomIdentifier);
-
-		btnDisconnect = view.findViewById(R.id.frag_btnDisconnect);
-		btnDeleteRoom = view.findViewById(R.id.frag_btnDeleteRoom);
-
-		btnDisconnect.setOnClickListener(btnDisconnectListener);
-		btnDeleteRoom.setOnClickListener(btnDeleteRoomListener);
-
 		return view;
 	}
-
-	private View.OnClickListener btnDisconnectListener = new View.OnClickListener()
-	{
-		@Override
-		public void onClick(View v)
-		{
-			Log.d("FragmentControlActivity", "LOGGING: onclick");
-			userRef.orderByChild("uri").equalTo(userUri).addListenerForSingleValueEvent(new ValueEventListener()
-			{
-				@Override
-				public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-				{
-					userRef= dataSnapshot.child("user").getRef();
-					userRef.removeValue();
-					userRef= dataSnapshot.child("admin").getRef();
-					userRef.removeValue();
-				}
-
-				@Override
-				public void onCancelled(@NonNull DatabaseError databaseError)
-				{
-
-				}
-			});
-		}
-	};
-
-	private View.OnClickListener btnDeleteRoomListener = new View.OnClickListener()
-	{
-		@Override
-		public void onClick(View v)
-		{
-
-		}
-	};
 }
