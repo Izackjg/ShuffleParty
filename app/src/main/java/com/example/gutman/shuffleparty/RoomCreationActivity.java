@@ -33,7 +33,7 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class RoomControlActivity extends AppCompatActivity
+public class RoomCreationActivity extends AppCompatActivity
 {
 	private Button btnCreateRoom;
 	private Button btnJoinRoom;
@@ -146,7 +146,7 @@ public class RoomControlActivity extends AppCompatActivity
 			{
 				if (!dataSnapshot.hasChild(roomCodeText))
 				{
-					Toast.makeText(RoomControlActivity.this, "Room does not exist.", Toast.LENGTH_LONG).show();
+					Toast.makeText(RoomCreationActivity.this, "Room does not exist.", Toast.LENGTH_LONG).show();
 					return;
 				}
 

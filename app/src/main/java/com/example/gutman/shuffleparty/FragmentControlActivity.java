@@ -11,11 +11,13 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 
 import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -127,7 +129,7 @@ public class FragmentControlActivity extends AppCompatActivity
 							if (admin)
 								deleteRoomDialogForAdmin();
 							else {
-								Intent i = new Intent(main, RoomControlActivity.class);
+								Intent i = new Intent(main, RoomCreationActivity.class);
 								startActivity(i);
 								finish();
 							}
@@ -149,7 +151,7 @@ public class FragmentControlActivity extends AppCompatActivity
 					{
 						if (!debug)
 							FirebaseUtils.deleteRoomFromDatabase(roomIdentifier);
-						Intent i = new Intent(main, RoomControlActivity.class);
+						Intent i = new Intent(main, RoomCreationActivity.class);
 						startActivity(i);
 						finish();
 					}
@@ -165,7 +167,42 @@ public class FragmentControlActivity extends AppCompatActivity
 			@Override
 			public void onClick(DialogInterface dialog, int which)
 			{
-				// delete user from room. if user is only one with premium, delete room.
+				userRef.addListenerForSingleValueEvent(new ValueEventListener()
+				{
+					@Override
+					public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+					{
+						long childrenCount = 0;
+						for (DataSnapshot ds : dataSnapshot.getChildren()) {
+							// Children count gets decreased by one, because it gets the track node, and the user node.
+							// So we only need one, if there is only one node, we know users has been deleted.
+							// User node deleted -> no users in the room.
+							childrenCount = ds.getChildrenCount() - 1;
+							
+							Log.d(main.getClass().getSimpleName(), "LOGGING CHILDREN COUNT: " + childrenCount);
+							UserPrivateExtension extension = ds.getValue(UserPrivateExtension.class);
+							Log.d(main.getClass().getSimpleName(), "LOGGING KEY: " + ds.getKey());
+							if (extension.getUser().uri.equals(CredentialsHandler.getUserUri(main))){
+								Log.d(main.getClass().getSimpleName(), "LOGGING KEY IF: " + ds.getKey());
+								userRef.child(ds.getKey()).removeValue();
+								childrenCount--;
+								Log.d(main.getClass().getSimpleName(), "LOGGING CHILDREN COUNT: " + childrenCount);
+								if (childrenCount == 0)
+									FirebaseUtils.deleteRoomFromDatabase(roomIdentifier);
+							}
+						}
+
+					}
+
+					@Override
+					public void onCancelled(@NonNull DatabaseError databaseError)
+					{
+
+					}
+				});
+				Intent mainIntent = new Intent(main, RoomCreationActivity.class);
+				startActivity(mainIntent);
+				finish();
 			}
 		}).show();
 	}

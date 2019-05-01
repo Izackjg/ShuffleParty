@@ -151,7 +151,8 @@ public class PlaylistFragment extends Fragment
 				spotifyAppRemote = mSpotifyAppRemote;
 				playerApi = spotifyAppRemote.getPlayerApi();
 
-				if (spotifyAppRemote == null || playerApi == null) {
+				if (spotifyAppRemote == null || playerApi == null)
+				{
 					SpotifyAppRemote.disconnect(spotifyAppRemote);
 				}
 
@@ -455,9 +456,9 @@ public class PlaylistFragment extends Fragment
 			// The current track will be null when we navigate to other fragments.
 			if (current != null)
 				dur = current.duration_ms / 1000.0;
-			// If the current track is null, this means we have navigated to other fragments.
-			// Get the PlayerState track duration -> usually the track that is currently playing.
-			if (state != null)
+				// If the current track is null, this means we have navigated to other fragments.
+				// Get the PlayerState track duration -> usually the track that is currently playing.
+			else if (state != null)
 				dur = state.track.duration / 1000.0;
 
 			// I do these above lines so that in the method: setupAppRemote
@@ -469,8 +470,7 @@ public class PlaylistFragment extends Fragment
 			// But still large enough to have the track end.
 			double error = 1.05;
 			double decimal = (dur % 1.0) * error;
-			// Floor the value, because we want to lowest value - closest to the original track duration.
-			//double end = Math.floor(dur - decimal);
+			// Floor the value, because we want to lowest value -> closest to the original track duration.
 			double end = Math.floor(dur - decimal);
 
 			return (int) elapsedSecondsRound >= (int) end;

@@ -5,29 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
-import com.example.gutman.shuffleparty.utils.SpotifyUtils;
-import com.google.gson.JsonObject;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-
-import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.UserPrivate;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 public class LoginActivity extends AppCompatActivity
 {
@@ -49,7 +36,7 @@ public class LoginActivity extends AppCompatActivity
 
 		if (CredentialsHandler.getToken(this) != null)
 		{
-			Intent intent = new Intent(this, RoomControlActivity.class);
+			Intent intent = new Intent(this, RoomCreationActivity.class);
 			startActivity(intent);
 			finish();
 		}
@@ -69,7 +56,7 @@ public class LoginActivity extends AppCompatActivity
 				case TOKEN:
 					ApiToken = response.getAccessToken();
 					CredentialsHandler.setToken(this, ApiToken, 1, TimeUnit.HOURS);
-					Intent intent = new Intent(this, RoomControlActivity.class);
+					Intent intent = new Intent(this, RoomCreationActivity.class);
 					startActivity(intent);
 					finish();
 					break;

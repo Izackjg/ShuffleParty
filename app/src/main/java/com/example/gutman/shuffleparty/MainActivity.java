@@ -91,20 +91,11 @@ public class MainActivity extends AppCompatActivity
 							@Override
 							public void onItemSelected(View itemView, Track item, int position)
 							{
-								//FirebaseUtils.addTrackToDatabase(item);
-
 								playlistItems.add(item);
 
 								searchView.setQuery("", false);
 								adapter.clearData();
 								searchResults.setAdapter(adapter);
-
-								if (playlistItems.size() >= 3)
-								{
-									Intent playlistActivity = new Intent(main, PlaylistActivity.class);
-									playlistActivity.putExtra("pl", (Serializable) playlistItems);
-									startActivity(playlistActivity);
-								}
 							}
 						});
 					}
