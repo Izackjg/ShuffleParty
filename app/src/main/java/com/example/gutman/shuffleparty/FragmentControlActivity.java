@@ -178,7 +178,7 @@ public class FragmentControlActivity extends AppCompatActivity
 							// So we only need one, if there is only one node, we know users has been deleted.
 							// User node deleted -> no users in the room.
 							childrenCount = ds.getChildrenCount() - 1;
-							
+
 							Log.d(main.getClass().getSimpleName(), "LOGGING CHILDREN COUNT: " + childrenCount);
 							UserPrivateExtension extension = ds.getValue(UserPrivateExtension.class);
 							Log.d(main.getClass().getSimpleName(), "LOGGING KEY: " + ds.getKey());

@@ -18,9 +18,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity"/>
-        <activity android:name=".PlayTrackActivity"/>
-        <activity android:name=".PlaylistActivity"/>
         <activity android:name=".RoomCreationActivity"/>
         <activity android:name=".FragmentControlActivity"/>
     </application>

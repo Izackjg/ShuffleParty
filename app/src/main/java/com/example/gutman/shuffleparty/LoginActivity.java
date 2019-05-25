@@ -4,12 +4,21 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
+import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
@@ -78,6 +87,15 @@ public class LoginActivity extends AppCompatActivity
 		AuthenticationRequest request = builder.build();
 
 		AuthenticationClient.openLoginActivity((Activity) main, REQUEST_CODE, request);
+		userInRoom();
+	}
+
+	private boolean userInRoom(){
+		String userUri = CredentialsHandler.getUserUri(this);
+		DatabaseReference ref = FirebaseUtils.ROOM_REF;
+		Query contains = ref.orderByChild("users").equalTo(userUri);
+		Log.d(main.getClass().getSimpleName(), "LOGGING CONTAINS VALUE: " + contains == null ? "T" : "F");
+		return contains == null;
 	}
 }
 
