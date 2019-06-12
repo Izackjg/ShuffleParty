@@ -55,6 +55,8 @@ public class RoomCreationActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_room_creation);
 
+		//CredentialsHandler.clearAll(this);
+
 		FirebaseApp.initializeApp(this);
 
 		apiToken = CredentialsHandler.getToken(this);

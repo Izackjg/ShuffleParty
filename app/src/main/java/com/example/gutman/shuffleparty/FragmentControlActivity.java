@@ -128,7 +128,8 @@ public class FragmentControlActivity extends AppCompatActivity
 						case R.id.navigation_leave:
 							if (admin)
 								deleteRoomDialogForAdmin();
-							else {
+							else
+							{
 								Intent i = new Intent(main, RoomCreationActivity.class);
 								startActivity(i);
 								finish();
@@ -142,28 +143,17 @@ public class FragmentControlActivity extends AppCompatActivity
 	private void deleteRoomDialogForAdmin()
 	{
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Delete Room")
-				.setMessage("Are you sure you want to delete this room?")
-				.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+		builder.setTitle("Leave Room")
+				.setMessage("Are you sure you want to leave this room?")
+				.setNegativeButton("No", new DialogInterface.OnClickListener()
 				{
 					@Override
 					public void onClick(DialogInterface dialog, int which)
 					{
-						if (!debug)
-							FirebaseUtils.deleteRoomFromDatabase(roomIdentifier);
-						Intent i = new Intent(main, RoomCreationActivity.class);
-						startActivity(i);
-						finish();
+						// do nothing
 					}
-				}).setNegativeButton("No", new DialogInterface.OnClickListener()
-		{
-			@Override
-			public void onClick(DialogInterface dialog, int which)
+				}).setPositiveButton("Leave Room", new DialogInterface.OnClickListener()
 			{
-				// do nothing
-			}
-		}).setNeutralButton("Leave Room", new DialogInterface.OnClickListener()
-		{
 			@Override
 			public void onClick(DialogInterface dialog, int which)
 			{
@@ -173,7 +163,8 @@ public class FragmentControlActivity extends AppCompatActivity
 					public void onDataChange(@NonNull DataSnapshot dataSnapshot)
 					{
 						long childrenCount = 0;
-						for (DataSnapshot ds : dataSnapshot.getChildren()) {
+						for (DataSnapshot ds : dataSnapshot.getChildren())
+						{
 							// Children count gets decreased by one, because it gets the track node, and the user node.
 							// So we only need one, if there is only one node, we know users has been deleted.
 							// User node deleted -> no users in the room.
@@ -182,7 +173,8 @@ public class FragmentControlActivity extends AppCompatActivity
 							Log.d(main.getClass().getSimpleName(), "LOGGING CHILDREN COUNT: " + childrenCount);
 							UserPrivateExtension extension = ds.getValue(UserPrivateExtension.class);
 							Log.d(main.getClass().getSimpleName(), "LOGGING KEY: " + ds.getKey());
-							if (extension.getUser().uri.equals(CredentialsHandler.getUserUri(main))){
+							if (extension.uri.equals(CredentialsHandler.getUserUri(main)))
+							{
 								Log.d(main.getClass().getSimpleName(), "LOGGING KEY IF: " + ds.getKey());
 								userRef.child(ds.getKey()).removeValue();
 								childrenCount--;

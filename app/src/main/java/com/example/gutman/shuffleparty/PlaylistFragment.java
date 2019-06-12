@@ -158,6 +158,8 @@ public class PlaylistFragment extends Fragment
 
 				if (mSpotifyAppRemote.isConnected())
 				{
+					// If connected, whether from app or random Spotify song, setup the UI and PlayerState
+					// based on the connected Spotify Remote.
 					playerApi.getPlayerState().setResultCallback(new CallResult.ResultCallback<PlayerState>()
 					{
 						@Override
@@ -170,6 +172,7 @@ public class PlaylistFragment extends Fragment
 					});
 				} else
 				{
+					// Else it is not connected, so that means that we get the song based on the list of songs.
 					current = playlistItems.get(index);
 					setupUI(current);
 
@@ -186,6 +189,7 @@ public class PlaylistFragment extends Fragment
 		});
 	}
 
+	// Track from Wrapper
 	private void setupUI(Track newTrack)
 	{
 		int dur = (int) newTrack.duration_ms / 1000;
@@ -196,6 +200,7 @@ public class PlaylistFragment extends Fragment
 		tvTrackTitleArtists.setText(newTrack.name + SpotifyConstants.SEPERATOR + aritstsFormatted);
 	}
 
+	// Track from Spotify Player State.
 	private void setupUI(com.spotify.protocol.types.Track newTrack)
 	{
 		int dur = (int) newTrack.duration / 1000;
@@ -289,12 +294,19 @@ public class PlaylistFragment extends Fragment
 			new SpotifyTrackAdapter.TrackSelectedListener()
 			{
 				@Override
-				public void onItemSelected(View itemView, Track item, int position)
+				public void onItemSelected(View itemView, final Track item, final int position)
 				{
+					if (playerApi == null)
+					{
+						ConnectionParams params = SpotifyUtils.getParams();
+						spotifyConnect(params);
+					}
+
 					index = position;
 					current = item;
 					setupUI(current);
 					playerApi.play(current.uri);
+
 				}
 			};
 
@@ -339,6 +351,25 @@ public class PlaylistFragment extends Fragment
 
 		}
 	};
+
+	private void spotifyConnect(ConnectionParams params)
+	{
+		SpotifyAppRemote.connect(main, params, new Connector.ConnectionListener()
+		{
+			@Override
+			public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
+			{
+				spotifyAppRemote = mSpotifyAppRemote;
+				playerApi = spotifyAppRemote.getPlayerApi();
+			}
+
+			@Override
+			public void onFailure(Throwable throwable)
+			{
+
+			}
+		});
+	}
 
 	private Runnable playerStateUpdateRunnable = new Runnable()
 	{

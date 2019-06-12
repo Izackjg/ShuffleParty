@@ -7,6 +7,4 @@ public class SpotifyConstants
 	public static final String ClientSecret = "99625d21711a4aa3a687fdf0b605ab1e";
 	public static final String Combined = ClientID + ":" + ClientSecret;
 	public static final String REDIRECT_URL = "http://example.com/callback/";
-
-
 }
