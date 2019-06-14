@@ -29,10 +29,10 @@ public class FirebaseUtils
 		DatabaseReference roomRef = ROOM_REF.child(room.getIdentifier());
 		roomRef.child("created").setValue(createdAt);
 
-		for (UserPrivate u : room.getConnectedUsers())
+		for (UserPrivateExtension u : room.getConnectedUsers())
 		{
 			if (u != null)
-				addUserToRoom(room.getIdentifier(), (UserPrivateExtension) u);
+				addUserToRoom(room.getIdentifier(), u);
 		}
 	}
 

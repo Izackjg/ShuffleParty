@@ -173,7 +173,7 @@ public class FragmentControlActivity extends AppCompatActivity
 							Log.d(main.getClass().getSimpleName(), "LOGGING CHILDREN COUNT: " + childrenCount);
 							UserPrivateExtension extension = ds.getValue(UserPrivateExtension.class);
 							Log.d(main.getClass().getSimpleName(), "LOGGING KEY: " + ds.getKey());
-							if (extension.uri.equals(CredentialsHandler.getUserUri(main)))
+							if (extension.getUserPrivate().uri.equals(CredentialsHandler.getUserUri(main)))
 							{
 								Log.d(main.getClass().getSimpleName(), "LOGGING KEY IF: " + ds.getKey());
 								userRef.child(ds.getKey()).removeValue();

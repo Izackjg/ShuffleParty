@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -63,9 +64,9 @@ class SpotifyUserAdapter extends RecyclerView.Adapter<SpotifyUserAdapter.ViewHol
 	public void onBindViewHolder(ViewHolder holder, int position)
 	{
 		UserPrivate user = users.get(position);
-		boolean type = permissionTypes.get(position);
+		boolean isAdmin = permissionTypes.get(position);
 
-		if (type)
+		if (isAdmin)
 			holder.username.setTextColor(context.getResources().getColor(R.color.adminRed));
 
 		holder.username.setText("Username: " + user.display_name);

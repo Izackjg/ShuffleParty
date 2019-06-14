@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -97,13 +98,13 @@ public class UsersFragment extends Fragment
 			// For all the children in the DataSnapshot
 			for (DataSnapshot ds : dataSnapshot.getChildren())
 			{
-				// Get the PermissionType value, and convert it from Object to a PermissionType.
+				// Get the PermissionType value, and convert it from Object to a Boolean.
 				// Get the value, and convert it from Object to a Spotify UserPrivate class.
-				UserPrivate userPrivate = ds.child("user").getValue(UserPrivate.class);
-				boolean type = ds.child("admin").getValue(Boolean.class);
+				UserPrivate userPrivate = ds.child("userPrivate").getValue(UserPrivate.class);
+				boolean isAdmin = ds.child("admin").getValue(Boolean.class);
 				// Add it to the playlistItems and permissionTypes respectively.
 				users.add(userPrivate);
-				permissionTypes.add(type);
+				permissionTypes.add(isAdmin);
 			}
 			// Setup the adapter.
 			setupAdapter();

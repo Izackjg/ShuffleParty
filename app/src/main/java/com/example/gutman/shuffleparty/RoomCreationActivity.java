@@ -102,7 +102,7 @@ public class RoomCreationActivity extends AppCompatActivity
 
 	public void btnCreateRoom_onClick(View view)
 	{
-		final List<UserPrivate> userList = new ArrayList<>();
+		final List<UserPrivateExtension> userList = new ArrayList<>();
 		if (userPrivate == null || in == null)
 			return;
 
@@ -110,7 +110,7 @@ public class RoomCreationActivity extends AppCompatActivity
 		String dateFormatted = df.format(Calendar.getInstance().getTime());
 
 		// Create a new UserExtension that contains it's permissions.
-		extension = new UserPrivateExtension(userPrivate, admin, in);
+		extension = new UserPrivateExtension(userPrivate, admin);
 
 		// Add it to the list of users.
 		userList.add(extension);
@@ -152,7 +152,7 @@ public class RoomCreationActivity extends AppCompatActivity
 					return;
 				}
 
-				extension = new UserPrivateExtension(userPrivate, admin, in);
+				extension = new UserPrivateExtension(userPrivate, admin);
 				// Add the user to the specific room.
 				FirebaseUtils.addUserToRoom(roomCodeText, extension);
 				// Start the FragmentControlActivity, passing on the room identifer.
@@ -175,6 +175,11 @@ public class RoomCreationActivity extends AppCompatActivity
 		Intent i = new Intent(getBaseContext(), FragmentControlActivity.class);
 		i.putExtra("ident", identifer);
 		startActivity(i);
+	}
+
+	private boolean userConnected(String uri)
+	{
+		return false;
 	}
 
 }

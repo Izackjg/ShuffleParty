@@ -12,15 +12,15 @@ public class Room
 
 	private String identifier;
 	private List<Track> playlistTracks;
-	private List<UserPrivate> connectedUsers;
+	private List<UserPrivateExtension> connectedUsers;
 
-	public Room(List<UserPrivate> connectedUsers) {
+	public Room(List<UserPrivateExtension> connectedUsers) {
 		identifier = AlphabeticUtils.getRandomStringSequence(IDENTIFIER_LEN);
 		this.playlistTracks = new ArrayList<>();
 		this.connectedUsers = connectedUsers;
 	}
 
-	public List<UserPrivate> getConnectedUsers()
+	public List<UserPrivateExtension> getConnectedUsers()
 	{
 		return connectedUsers;
 	}
