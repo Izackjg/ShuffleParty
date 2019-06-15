@@ -1,10 +1,13 @@
 package com.example.gutman.shuffleparty;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,11 +18,14 @@ import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
+import com.google.firebase.FirebaseApiNotAvailableException;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.spotify.android.appremote.internal.SpotifyAppRemoteIsConnectedRule;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -35,9 +41,10 @@ import retrofit.client.Response;
 
 public class RoomCreationActivity extends AppCompatActivity
 {
+	private DatabaseReference roomRef;
+
 	private Button btnCreateRoom;
 	private Button btnJoinRoom;
-	private Button btnClearSP;
 	private EditText etRoomCode;
 
 	private Parcel in;
@@ -55,7 +62,9 @@ public class RoomCreationActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_room_creation);
 
-		//CredentialsHandler.clearAll(this);
+		// Get the main database reference.
+		// In this case it is all the rooms.
+		roomRef = FirebaseUtils.ROOM_REF;
 
 		FirebaseApp.initializeApp(this);
 
@@ -75,6 +84,7 @@ public class RoomCreationActivity extends AppCompatActivity
 
 		if (spotify == null)
 			return;
+
 		spotify.getMe(new Callback<UserPrivate>()
 		{
 			@Override
@@ -137,11 +147,8 @@ public class RoomCreationActivity extends AppCompatActivity
 			return;
 		}
 
-		// Get the main database reference.
-		// In this case it is all the rooms.
-		DatabaseReference ref = FirebaseUtils.ROOM_REF;
 		// Add a listener for a single event.
-		ref.addListenerForSingleValueEvent(new ValueEventListener()
+		roomRef.addListenerForSingleValueEvent(new ValueEventListener()
 		{
 			@Override
 			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
@@ -153,8 +160,19 @@ public class RoomCreationActivity extends AppCompatActivity
 				}
 
 				extension = new UserPrivateExtension(userPrivate, admin);
-				// Add the user to the specific room.
-				FirebaseUtils.addUserToRoom(roomCodeText, extension);
+				DatabaseReference joinRoomUserRef = FirebaseUtils.getUsersReference(roomCodeText);
+
+				// Query to check if the user is existing in the room.
+				// If user is existing, the query will not be null.
+				Query userExistsQuery = joinRoomUserRef.orderByChild("uri").equalTo(userPrivate.uri);
+
+				// If the query is null, then the user is already existing in the room.
+				// Meaning we don't need to add him to the user ref of the database.
+				// This fixes the issue of having copies of the same user in the Database - as well in the UserFragment.
+				if (userExistsQuery == null)
+					// Add the user to the specific room.
+					FirebaseUtils.addUserToRoom(roomCodeText, extension);
+				
 				// Start the FragmentControlActivity, passing on the room identifer.
 				// This allows us to pass the room identifer to all the fragments.
 				// Having the room identifer access allows us to get/add items from and to the database.
@@ -176,10 +194,4 @@ public class RoomCreationActivity extends AppCompatActivity
 		i.putExtra("ident", identifer);
 		startActivity(i);
 	}
-
-	private boolean userConnected(String uri)
-	{
-		return false;
-	}
-
 }
