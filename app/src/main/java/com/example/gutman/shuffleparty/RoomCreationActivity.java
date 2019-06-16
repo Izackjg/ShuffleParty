@@ -96,8 +96,8 @@ public class RoomCreationActivity extends AppCompatActivity
 				userPrivate.writeToParcel(in, 0);
 
 				admin = userPrivate.product.equals("premium");
-				if (!admin)
-					admin = userPrivate.display_name.equals("pyschopenguin");
+//				if (!admin)
+//					admin = userPrivate.display_name.equals("pyschopenguin");
 
 				CredentialsHandler.setUserInfo(getBaseContext(), userPrivate);
 			}
@@ -172,7 +172,7 @@ public class RoomCreationActivity extends AppCompatActivity
 				if (userExistsQuery == null)
 					// Add the user to the specific room.
 					FirebaseUtils.addUserToRoom(roomCodeText, extension);
-				
+
 				// Start the FragmentControlActivity, passing on the room identifer.
 				// This allows us to pass the room identifer to all the fragments.
 				// Having the room identifer access allows us to get/add items from and to the database.

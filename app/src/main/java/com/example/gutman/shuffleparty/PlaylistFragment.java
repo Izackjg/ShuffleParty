@@ -458,6 +458,8 @@ public class PlaylistFragment extends Fragment
 
 	public class SpotifyAsyncTask extends AsyncTask<PlayerState, Double, Boolean>
 	{
+		// This method does all of this calculation on another thread.
+		// This is why we have publishProgress(double) to allow the main thread GUI to access the elapsed seconds.
 		@Override
 		protected Boolean doInBackground(PlayerState... playerStates)
 		{
@@ -495,16 +497,22 @@ public class PlaylistFragment extends Fragment
 			// I do these above lines so that in the method: setupAppRemote
 			// I am able to setup the UI and progress update, whether or not the variable current is null.
 
+			// *****
+
 			// This gets the value of the decimal point after the duration.
 			// We multiply it by a lowest possible value, but high enough
 			// to register the track ending.
 			// But still large enough to have the track end.
-			double error = 1.05;
-			double decimal = (dur % 1.0) * error;
+			//double error = 1.05;
+			//double decimal = (dur % 1.0) * error;
 			// Floor the value, because we want to lowest value -> closest to the original track duration.
-			double end = Math.floor(dur - decimal);
+			//double end = Math.floor(dur - decimal);
 
-			return (int) elapsedSecondsRound >= (int) end;
+			// *****
+
+			double end = Math.floor(dur);
+
+			return elapsedSecondsRound >= end;
 		}
 
 		// Called on UI thread after calling publishProgress(Double...)
