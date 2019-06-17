@@ -43,12 +43,9 @@ public class SearchFragment extends Fragment
 	private Context main;
 	private Activity mainActivity;
 
-	private ConnectionParams connectionParams;
-
 	private List<Track> playlistItems = new ArrayList<>();
 
 	private SpotifyService spotify;
-	private SpotifyAppRemote spotifyAppRemote;
 
 	private static String apiToken;
 
@@ -78,9 +75,12 @@ public class SearchFragment extends Fragment
 				if (roomIdentifer != null)
 					FirebaseUtils.addTrackToDatabase(roomIdentifer, item);
 
+				// Add the selected searched track to playlist items.
 				playlistItems.add(item);
 
+				// Set the query to empty.
 				searchView.setQuery("", false);
+				// Clear the adapter data.
 				adapter.clearData();
 				searchResults.setAdapter(adapter);
 			}
@@ -123,11 +123,11 @@ public class SearchFragment extends Fragment
 			@Override
 			public boolean onQueryTextSubmit(String query)
 			{
-				if (adapter.getItemCount() != 0)
-				{
-					adapter.clearData();
-					searchResults.setAdapter(adapter);
-				}
+//				if (adapter.getItemCount() != 0)
+//				{
+//					adapter.clearData();
+//					searchResults.setAdapter(adapter);
+//				}
 
 				if (query.isEmpty())
 					return false;
@@ -142,6 +142,7 @@ public class SearchFragment extends Fragment
 					@Override
 					public void success(TracksPager tracksPager, Response response)
 					{
+						// Set the adapter to the items retrieved from the Spotify API.
 						adapter.setData(tracksPager.tracks.items);
 						searchResults.setAdapter(adapter);
 					}

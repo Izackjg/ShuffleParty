@@ -1,5 +1,6 @@
 package com.example.gutman.shuffleparty;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -43,11 +44,12 @@ public class RoomCreationActivity extends AppCompatActivity
 {
 	private DatabaseReference roomRef;
 
+	private Context main;
+
 	private Button btnCreateRoom;
 	private Button btnJoinRoom;
 	private EditText etRoomCode;
 
-	private Parcel in;
 	private UserPrivate userPrivate;
 	private UserPrivateExtension extension;
 
@@ -62,12 +64,15 @@ public class RoomCreationActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_room_creation);
 
+		main = this;
+
 		// Get the main database reference.
 		// In this case it is all the rooms.
 		roomRef = FirebaseUtils.ROOM_REF;
 
 		FirebaseApp.initializeApp(this);
 
+		// Check if API Token has expired.
 		apiToken = CredentialsHandler.getToken(this);
 		if (apiToken == null)
 		{
@@ -76,8 +81,10 @@ public class RoomCreationActivity extends AppCompatActivity
 			finish();
 		}
 
+		// Get the instance of Spotify using the retrieved API Token from SharedPref.
 		spotify = SpotifyUtils.getInstance(apiToken);
 
+		// Get all the controls on the view.
 		btnCreateRoom = findViewById(R.id.btnCreateRoom);
 		btnJoinRoom = findViewById(R.id.btnJoinRoom);
 		etRoomCode = findViewById(R.id.etRoomCode);
@@ -85,21 +92,17 @@ public class RoomCreationActivity extends AppCompatActivity
 		if (spotify == null)
 			return;
 
+		// Get user from Spotify API.
 		spotify.getMe(new Callback<UserPrivate>()
 		{
 			@Override
 			public void success(UserPrivate mUserPrivate, Response response)
 			{
-				in = Parcel.obtain();
-
 				userPrivate = mUserPrivate;
-				userPrivate.writeToParcel(in, 0);
 
 				admin = userPrivate.product.equals("premium");
-//				if (!admin)
-//					admin = userPrivate.display_name.equals("pyschopenguin");
 
-				CredentialsHandler.setUserInfo(getBaseContext(), userPrivate);
+				CredentialsHandler.setUserInfo(main, userPrivate);
 			}
 
 			@Override
@@ -113,7 +116,7 @@ public class RoomCreationActivity extends AppCompatActivity
 	public void btnCreateRoom_onClick(View view)
 	{
 		final List<UserPrivateExtension> userList = new ArrayList<>();
-		if (userPrivate == null || in == null)
+		if (userPrivate == null)
 			return;
 
 		DateFormat df = new SimpleDateFormat("EEE, MMM d, yyyy HH:mm");
@@ -141,13 +144,14 @@ public class RoomCreationActivity extends AppCompatActivity
 	{
 		// Get the code from the EditText, and then change it to fully uppercase - incase the user entered it in lowercase.
 		final String roomCodeText = etRoomCode.getText().toString().toUpperCase().trim();
-		if (roomCodeText.equals("") || roomCodeText.equals(" "))
+		if (roomCodeText.isEmpty())
 		{
 			Toast.makeText(this, "Room code cannot be an empty charachter literal.", Toast.LENGTH_SHORT).show();
 			return;
 		}
 
 		// Add a listener for a single event.
+		// Added to the highest reference -> "Rooms".
 		roomRef.addListenerForSingleValueEvent(new ValueEventListener()
 		{
 			@Override
@@ -190,7 +194,7 @@ public class RoomCreationActivity extends AppCompatActivity
 
 	private void startFragmentActivityHolder(String identifer)
 	{
-		Intent i = new Intent(getBaseContext(), FragmentControlActivity.class);
+		Intent i = new Intent(main, FragmentControlActivity.class);
 		i.putExtra("ident", identifer);
 		startActivity(i);
 	}

@@ -50,11 +50,6 @@ public class FirebaseUtils
 		currentRoomTrackRef.push().setValue(t);
 	}
 
-	public static boolean isUserConnected(String identifer, String uri) {
-		DatabaseReference currentRoomUserRef = getUsersReference(identifer);
-		return currentRoomUserRef.orderByChild("uri").equalTo(uri) != null;
-	}
-
 	public static DatabaseReference getTrackReference(String identifer)
 	{
 		return ROOM_REF.child(identifer).child("tracks");

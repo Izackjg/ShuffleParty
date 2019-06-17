@@ -116,12 +116,6 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		notifyDataSetChanged();
 	}
 
-	public void addData(List<Track> items)
-	{
-		this.items.addAll(items);
-		notifyDataSetChanged();
-	}
-
 	public void deleteItem(int pos)
 	{
 		recentlyDeletedItem = items.get(pos);

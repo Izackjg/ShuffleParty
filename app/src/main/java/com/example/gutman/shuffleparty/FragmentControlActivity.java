@@ -32,7 +32,6 @@ public class FragmentControlActivity extends AppCompatActivity
 	private Context main;
 	private BottomNavigationView navView;
 
-	private boolean debug = true;
 	private boolean admin = false;
 	private String roomIdentifier;
 	private String uri;
@@ -45,6 +44,7 @@ public class FragmentControlActivity extends AppCompatActivity
 
 		main = this;
 
+		// Check if API Token has expired.
 		String apiToken = CredentialsHandler.getToken(this);
 		if (apiToken == null)
 		{
@@ -53,6 +53,7 @@ public class FragmentControlActivity extends AppCompatActivity
 			finish();
 		}
 
+		// Find the BottomNavView and add its item selected listener.
 		navView = findViewById(R.id.navigation);
 		navView.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener);
 
@@ -65,15 +66,12 @@ public class FragmentControlActivity extends AppCompatActivity
 		Bundle b = new Bundle();
 		b.putString("ident", roomIdentifier);
 
-		boolean bundleValuesNull = b.getString("ident") == null;
-
-		if (!bundleValuesNull)
-		{
-			Fragment homeFragment = new HomeFragment();
-			homeFragment.setArguments(b);
-			navView.setSelectedItemId(R.id.navigation_home);
-			addFragment(homeFragment);
-		}
+		// Start the HomeFragment first always.
+		// This will always execute because it is in the onCreate method.
+		Fragment homeFragment = new HomeFragment();
+		homeFragment.setArguments(b);
+		navView.setSelectedItemId(R.id.navigation_home);
+		addFragment(homeFragment);
 	}
 
 	private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener =
@@ -83,6 +81,7 @@ public class FragmentControlActivity extends AppCompatActivity
 				public boolean onNavigationItemSelected(@NonNull MenuItem item)
 				{
 					Fragment fragment;
+					// Return the FragmentManager for interacting with fragments associated with this activity.
 					Fragment current = getSupportFragmentManager().findFragmentById(R.id.frame_container);
 
 					Bundle b = new Bundle();
@@ -153,7 +152,7 @@ public class FragmentControlActivity extends AppCompatActivity
 						// do nothing
 					}
 				}).setPositiveButton("Leave Room", new DialogInterface.OnClickListener()
-			{
+		{
 			@Override
 			public void onClick(DialogInterface dialog, int which)
 			{
@@ -170,15 +169,15 @@ public class FragmentControlActivity extends AppCompatActivity
 							// User node deleted -> no users in the room.
 							childrenCount = ds.getChildrenCount() - 1;
 
-							Log.d(main.getClass().getSimpleName(), "LOGGING CHILDREN COUNT: " + childrenCount);
+							//Log.d(main.getClass().getSimpleName(), "LOGGING CHILDREN COUNT: " + childrenCount);
 							UserPrivateExtension extension = ds.getValue(UserPrivateExtension.class);
-							Log.d(main.getClass().getSimpleName(), "LOGGING KEY: " + ds.getKey());
+							//Log.d(main.getClass().getSimpleName(), "LOGGING KEY: " + ds.getKey());
 							if (extension.getUserPrivate().uri.equals(CredentialsHandler.getUserUri(main)))
 							{
-								Log.d(main.getClass().getSimpleName(), "LOGGING KEY IF: " + ds.getKey());
+								//Log.d(main.getClass().getSimpleName(), "LOGGING KEY IF: " + ds.getKey());
 								userRef.child(ds.getKey()).removeValue();
 								childrenCount--;
-								Log.d(main.getClass().getSimpleName(), "LOGGING CHILDREN COUNT: " + childrenCount);
+								//Log.d(main.getClass().getSimpleName(), "LOGGING CHILDREN COUNT: " + childrenCount);
 								if (childrenCount == 0)
 									FirebaseUtils.deleteRoomFromDatabase(roomIdentifier);
 							}

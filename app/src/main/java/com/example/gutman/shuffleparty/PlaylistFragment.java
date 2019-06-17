@@ -41,16 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-// TODO: ON TRACK REMOVE - DELETE FROM DATABASE - CURRENTLY ONLY CLIENT SIDE.
-// TODO: SET ADMIN BOOLEAN BASED ON CURRENT USERNAME FROM DB - AND CHANGE VIEW BASED ON THAT.
-// TODO: SET ADMIN BASED ON PRODUCT TYPE - IF CREATOR IS OPEN - REMOVE IT FROM CREATOR - SET IT TO FIRST PREMIUM USER.
-
-// BUG: EXITING APP AND RETURNING TO PLAYLIST FRAGMENT CREATES DOUBLE OF PLAYLIST IN RECYCLER VIEW.
-// BUG (UNFIXIBLE?): ON RETURN TO PLAYLIST FRAGMENT FROM OTHER FRAGMENT, MUST RESTART PLAYLIST FROM BEGINNING.
-
 public class PlaylistFragment extends Fragment
 {
-	private String TAG = "PlaylistFragment";
 
 	private DatabaseReference usersRef;
 	private DatabaseReference trackRef;
@@ -91,7 +83,9 @@ public class PlaylistFragment extends Fragment
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState)
 	{
+		// Returns the context the view is currently running in. Usually the currently active Activity.
 		main = container.getContext();
+		// Returns FragmentControlActivity
 		mainActivity = getActivity();
 
 		handler = new Handler();
@@ -117,7 +111,6 @@ public class PlaylistFragment extends Fragment
 		playlistItems = new ArrayList<>();
 		trackAdapter = new SpotifyTrackAdapter(main, playlistItems);
 		trackAdapter.setItemSelectedListener(trackSelectedListener);
-		setupRecyclerViewDecor();
 
 		setupAppRemote();
 
@@ -151,11 +144,6 @@ public class PlaylistFragment extends Fragment
 				spotifyAppRemote = mSpotifyAppRemote;
 				playerApi = spotifyAppRemote.getPlayerApi();
 
-				if (spotifyAppRemote == null || playerApi == null)
-				{
-					SpotifyAppRemote.disconnect(spotifyAppRemote);
-				}
-
 				if (mSpotifyAppRemote.isConnected())
 				{
 					// If connected, whether from app or random Spotify song, setup the UI and PlayerState
@@ -175,7 +163,6 @@ public class PlaylistFragment extends Fragment
 					// Else it is not connected, so that means that we get the song based on the list of songs.
 					current = playlistItems.get(index);
 					setupUI(current);
-
 					playerApi.play(current.uri);
 					mainActivity.runOnUiThread(playerStateUpdateRunnable);
 				}
@@ -217,48 +204,6 @@ public class PlaylistFragment extends Fragment
 		playlistView.setAdapter(trackAdapter);
 	}
 
-	private void setupRecyclerViewDecor()
-	{
-		Drawable icon = ContextCompat.getDrawable(main, R.drawable.round_delete);
-		ItemTouchHelper touchHelper = new ItemTouchHelper(new SwipeDeleteCallback(trackAdapter, new SwipeDeleteCallback.TrackSwipedListener()
-		{
-			@Override
-			public void onSwipedDelete(int position)
-			{
-				trackAdapter.deleteItem(position);
-				String uri = trackAdapter.getRecentlyDeletedItem().uri;
-				playlistItems = trackAdapter.getItems();
-				playlistView.setAdapter(trackAdapter);
-				deleteTrack(uri);
-			}
-		}, icon));
-		touchHelper.attachToRecyclerView(playlistView);
-	}
-
-	private void deleteTrack(String uri)
-	{
-		trackRef.orderByChild("uri").equalTo(uri).addListenerForSingleValueEvent(new ValueEventListener()
-		{
-			@Override
-			public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-			{
-				for (DataSnapshot ds : dataSnapshot.getChildren())
-				{
-					Log.d(main.getClass().getSimpleName(), "LOGGING: key " + ds.getKey());
-					Log.d(main.getClass().getSimpleName(), "LOGGING: count " + ds.getChildrenCount());
-					trackRef.child(ds.getKey()).removeValue();
-				}
-			}
-
-			@Override
-			public void onCancelled(@NonNull DatabaseError databaseError)
-			{
-
-			}
-		});
-	}
-
-
 	// Has events about data changes at a location.
 	// In this specific case, the location is at the current connected room reference.
 	private ValueEventListener valueEventListener = new ValueEventListener()
@@ -296,17 +241,10 @@ public class PlaylistFragment extends Fragment
 				@Override
 				public void onItemSelected(View itemView, final Track item, final int position)
 				{
-					if (playerApi == null)
-					{
-						ConnectionParams params = SpotifyUtils.getParams();
-						spotifyConnect(params);
-					}
-
 					index = position;
 					current = item;
 					setupUI(current);
 					playerApi.play(current.uri);
-
 				}
 			};
 
@@ -352,25 +290,6 @@ public class PlaylistFragment extends Fragment
 		}
 	};
 
-	private void spotifyConnect(ConnectionParams params)
-	{
-		SpotifyAppRemote.connect(main, params, new Connector.ConnectionListener()
-		{
-			@Override
-			public void onConnected(SpotifyAppRemote mSpotifyAppRemote)
-			{
-				spotifyAppRemote = mSpotifyAppRemote;
-				playerApi = spotifyAppRemote.getPlayerApi();
-			}
-
-			@Override
-			public void onFailure(Throwable throwable)
-			{
-
-			}
-		});
-	}
-
 	private Runnable playerStateUpdateRunnable = new Runnable()
 	{
 		@Override
@@ -411,6 +330,7 @@ public class PlaylistFragment extends Fragment
 					{
 						boolean isNull = current == null;
 						endOfTrack(isNull);
+						setupUI(current);
 					}
 				}
 			});
@@ -431,7 +351,6 @@ public class PlaylistFragment extends Fragment
 			// Get track based on index, setup UI, and play that track.
 			index += 1;
 			current = playlistItems.get(index);
-			setupUI(current);
 			playerApi.play(current.uri);
 		}
 
@@ -451,7 +370,6 @@ public class PlaylistFragment extends Fragment
 				index = 0;
 
 			current = playlistItems.get(index);
-			setupUI(current);
 			playerApi.play(current.uri);
 		}
 	}
@@ -491,7 +409,7 @@ public class PlaylistFragment extends Fragment
 				dur = current.duration_ms / 1000.0;
 				// If the current track is null, this means we have navigated to other fragments.
 				// Get the PlayerState track duration -> usually the track that is currently playing.
-			else if (state != null)
+			else if (current == null && state != null)
 				dur = state.track.duration / 1000.0;
 
 			// I do these above lines so that in the method: setupAppRemote
@@ -503,16 +421,16 @@ public class PlaylistFragment extends Fragment
 			// We multiply it by a lowest possible value, but high enough
 			// to register the track ending.
 			// But still large enough to have the track end.
-			//double error = 1.05;
-			//double decimal = (dur % 1.0) * error;
-			// Floor the value, because we want to lowest value -> closest to the original track duration.
-			//double end = Math.floor(dur - decimal);
+			double error = 1.05;
+			double decimal = (dur % 1.0) * error;
+			// Floor the value, because we want to lowest value.
+			double end = Math.floor(dur - decimal);
 
 			// *****
 
-			double end = Math.floor(dur);
+			//double end = Math.floor(dur);
 
-			return elapsedSecondsRound >= end;
+			return (int)elapsedSecondsRound >= (int)end;
 		}
 
 		// Called on UI thread after calling publishProgress(Double...)
