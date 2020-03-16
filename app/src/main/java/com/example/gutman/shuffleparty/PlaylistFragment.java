@@ -93,17 +93,17 @@ public class PlaylistFragment extends Fragment
 		// Inflate the layout for this fragment
 		View view = inflater.inflate(R.layout.fragment_playlist, container, false);
 
-		btnPlayPause = view.findViewById(R.id.frag_btnPlayPause_admin);
+		btnPlayPause = view.findViewById(R.id.btnPlayPause);
 		btnPlayPause.setOnClickListener(btnPlayPauseClickListener);
 
-		tvTrackDur = view.findViewById(R.id.frag_tvTrackDur_admin);
+		tvTrackDur = view.findViewById(R.id.tvTrackDur);
 		tvTrackElap = view.findViewById(R.id.frag_tvTrackElap_admin);
-		tvTrackTitleArtists = view.findViewById(R.id.frag_tvTrackTitleArtist_admin);
+		tvTrackTitleArtists = view.findViewById(R.id.tvTrackTitleArtist);
 
-		progress = view.findViewById(R.id.frag_seekbarProgress_admin);
+		progress = view.findViewById(R.id.seekbarProgress);
 		progress.setOnSeekBarChangeListener(seekBarChangeListener);
 
-		playlistView = view.findViewById(R.id.frag_playlistItemsView_admin);
+		playlistView = view.findViewById(R.id.playlistItemsView);
 
 		playlistView.setLayoutManager(new LinearLayoutManager(main));
 		playlistView.setHasFixedSize(true);
@@ -319,6 +319,7 @@ public class PlaylistFragment extends Fragment
 					{
 						// Get the result of the execution. This returns a boolean.
 						hasTrackEnded = spotifyTask.execute(currentState).get();
+						Log.d(main.getClass().getSimpleName(), "LOGGING HASTRACKENDED: " + hasTrackEnded);
 					} catch (InterruptedException e)
 					{
 					} catch (ExecutionException e)
@@ -328,8 +329,7 @@ public class PlaylistFragment extends Fragment
 					// If the boolean is true, then the track has ended.
 					if (hasTrackEnded)
 					{
-						boolean isNull = current == null;
-						endOfTrack(isNull);
+						endOfTrack();
 						setupUI(current);
 					}
 				}
@@ -339,20 +339,19 @@ public class PlaylistFragment extends Fragment
 		}
 	};
 
-	private void endOfTrack(boolean currentIsNull)
+	private void endOfTrack()
 	{
+		Log.d(main.getClass().getSimpleName(), "LOGGING INSIDE END OF TRACK");
 		// If current isn't null, play the next track regularly.
-		if (!currentIsNull)
-		{
-			if (index == playlistItems.size() - 1)
-				index = -1;
 
-			// Play next track.
-			// Get track based on index, setup UI, and play that track.
-			index += 1;
-			current = playlistItems.get(index);
-			playerApi.play(current.uri);
-		}
+		if (index == playlistItems.size() - 1)
+			index = -1;
+
+		// Play next track.
+		// Get track based on index, setup UI, and play that track.
+		index += 1;
+		current = playlistItems.get(index);
+		playerApi.play(current.uri);
 
 		// If current is null, that means we have just returned from navigating another fragment.
 		// This means that index will be 0, and if we didn't do this check,
@@ -360,18 +359,16 @@ public class PlaylistFragment extends Fragment
 		// although that might not be the case since we have just returned from navigating another fragment,
 		// meaning that the current track could be the player state track.
 
-		else
-		{
-			// Get index based on if the two track uri's are equal.
-			index = currentState.track == null ? 0 : SpotifyUtils.getIndex(playlistItems, currentState.track);
-			// If that method returned -1, it means the current state playing track isn't in the playing.
-			// Threfore, at the end of that current state track, set the index to 0. Therefore forcing playing the first track.
-			if (index == -1)
-				index = 0;
 
-			current = playlistItems.get(index);
-			playerApi.play(current.uri);
-		}
+		// Get index based on if the two track uri's are equal.
+		index = currentState.track == null ? 0 : SpotifyUtils.getIndex(playlistItems, currentState.track);
+		// If that method returned -1, it means the current state playing track isn't in the playing.
+		// Threfore, at the end of that current state track, set the index to 0. Therefore forcing playing the first track.
+		if (index == -1)
+			index = 0;
+
+		current = playlistItems.get(index);
+		playerApi.play(current.uri);
 	}
 
 	public class SpotifyAsyncTask extends AsyncTask<PlayerState, Double, Boolean>
@@ -397,7 +394,7 @@ public class PlaylistFragment extends Fragment
 			// Playback Position is in ms.
 			// Get the state's elapsed seconds, and convert it into seconds.
 			double elapsedSeconds = state.playbackPosition / 1000.0;
-			double elapsedSecondsRound = Math.ceil(elapsedSeconds);
+			double elapsedSecondsRound = Math.floor(elapsedSeconds);
 
 			// Passes the progress to the onProgressUpdate(Double...)
 			publishProgress(elapsedSecondsRound);
@@ -406,11 +403,11 @@ public class PlaylistFragment extends Fragment
 			// If the current track isn't null, then take the current tracks duration.
 			// The current track will be null when we navigate to other fragments.
 			if (current != null)
-				dur = current.duration_ms / 1000.0;
+				dur = (current.duration_ms / 1000.0);
 				// If the current track is null, this means we have navigated to other fragments.
 				// Get the PlayerState track duration -> usually the track that is currently playing.
 			else if (current == null && state != null)
-				dur = state.track.duration / 1000.0;
+				dur = (state.track.duration / 1000.0);
 
 			// I do these above lines so that in the method: setupAppRemote
 			// I am able to setup the UI and progress update, whether or not the variable current is null.
@@ -421,16 +418,14 @@ public class PlaylistFragment extends Fragment
 			// We multiply it by a lowest possible value, but high enough
 			// to register the track ending.
 			// But still large enough to have the track end.
-			double error = 1.05;
-			double decimal = (dur % 1.0) * error;
+
+			//double decimal = dur % 1.0;
+			elapsedSecondsRound = Math.floor(elapsedSecondsRound);
+
 			// Floor the value, because we want to lowest value.
-			double end = Math.floor(dur - decimal);
+			double end = Math.floor(dur);
 
-			// *****
-
-			//double end = Math.floor(dur);
-
-			return (int)elapsedSecondsRound >= (int)end;
+			return (int) elapsedSecondsRound >= (int)end - 4;
 		}
 
 		// Called on UI thread after calling publishProgress(Double...)

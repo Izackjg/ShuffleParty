@@ -13,6 +13,8 @@ import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.squareup.picasso.Picasso;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +38,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
 	{
 		private CardView rootCardView;
+		private final TextView time;
 		private final TextView title;
 		private final TextView artist;
 		private final TextView explicit;
@@ -46,6 +49,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		{
 			super(itemView);
 			rootCardView = itemView.findViewById(R.id.itemRootCardView);
+			time = itemView.findViewById(R.id.entityTime);
 			title = itemView.findViewById(R.id.entityTitle);
 			artist = itemView.findViewById(R.id.entityArtist);
 			image = itemView.findViewById(R.id.entityImage);
@@ -97,6 +101,18 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 			holder.explicit.setVisibility(View.GONE);
 
 		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + SpotifyConstants.SEPERATOR + item.album.name);
+
+
+		int timeMs = (int)item.duration_ms;
+		int mins = (timeMs / 1000) / 60;
+		int secs = (timeMs / 1000) % 60;
+		String timeString = "";
+		if (secs < 10)
+			 timeString = String.format("%d:0%d", mins, secs);
+		else
+			timeString = String.format("%d:%d", mins, secs);
+
+		holder.time.setText(timeString);
 
 		if (item.album.images.get(0) == null)
 			return;

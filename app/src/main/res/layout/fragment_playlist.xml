@@ -11,16 +11,17 @@
         android:layout_height="match_parent">
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/frag_playlistItemsView_admin"
+            android:id="@+id/playlistItemsView"
+            android:elevation="-50dp"
             android:layout_width="match_parent"
             android:layout_height="330dp"
             android:scrollbars="vertical"/>
 
         <TextView
-            android:id="@+id/frag_tvTrackTitleArtist_admin"
+            android:id="@+id/tvTrackTitleArtist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/frag_playlistItemsView_admin"
+            android:layout_below="@id/playlistItemsView"
             android:layout_centerHorizontal="true"
             android:gravity="center"
             android:textColor="@color/colorPrimary"
@@ -28,16 +29,16 @@
             android:textStyle="bold"/>
 
         <RelativeLayout
-            android:id="@+id/frag_playerLayout_admin"
+            android:id="@+id/playerLayout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="60dp"
-            android:elevation="8dp"
+            android:elevation="50dp"
             android:orientation="vertical">
 
             <Button
-                android:id="@+id/frag_btnPlayPause_admin"
+                android:id="@+id/btnPlayPause"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:layout_centerHorizontal="true"
@@ -45,21 +46,21 @@
                 android:background="@drawable/round_button_pause"/>
 
             <SeekBar
-                android:id="@+id/frag_seekbarProgress_admin"
+                android:id="@+id/seekbarProgress"
                 android:layout_width="250dp"
                 android:layout_height="30dp"
                 android:progressBackgroundTint="@color/lightGray"
-                android:layout_below="@id/frag_btnPlayPause_admin"
+                android:layout_below="@id/btnPlayPause"
                 android:layout_centerInParent="true"
                 android:layout_centerHorizontal="true"/>
 
             <TextView
-                android:id="@+id/frag_tvTrackDur_admin"
+                android:id="@+id/tvTrackDur"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_alignBottom="@id/frag_seekbarProgress_admin"
+                android:layout_alignBottom="@id/seekbarProgress"
                 android:layout_alignParentEnd="true"
-                android:layout_toEndOf="@id/frag_seekbarProgress_admin"
+                android:layout_toEndOf="@id/seekbarProgress"
                 android:gravity="center"
                 android:textColor="@color/colorPrimary"/>
 
@@ -67,9 +68,9 @@
                 android:id="@+id/frag_tvTrackElap_admin"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_alignBottom="@id/frag_seekbarProgress_admin"
+                android:layout_alignBottom="@id/seekbarProgress"
                 android:layout_alignParentStart="true"
-                android:layout_toStartOf="@id/frag_seekbarProgress_admin"
+                android:layout_toStartOf="@id/seekbarProgress"
                 android:gravity="center"
                 android:textColor="@color/colorPrimary"/>
 
