@@ -1,19 +1,18 @@
 package com.example.gutman.shuffleparty;
 
 import android.content.Context;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.RecyclerView;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.UserPrivate;
 

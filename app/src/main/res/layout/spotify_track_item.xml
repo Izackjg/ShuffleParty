@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView
+
+<androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:id="@+id/itemRootCardView"
@@ -23,17 +24,8 @@
             android:layout_marginEnd="5dp"
             android:scaleType="centerCrop"
             android:src="@mipmap/ic_launcher"
-            card_view:srcCompat="@color/colorPrimary"/>
-
-        <TextView
-            android:id="@+id/entityTime"
-            android:layout_marginLeft="33dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="Time"
-            android:textSize="12dp"
-            android:textColor="@color/secondaryColor"/>
+            card_view:srcCompat="@color/colorPrimary"
+            android:contentDescription="TODO" />
 
         <TextView
             android:id="@+id/entityExplicity"
@@ -48,9 +40,9 @@
             android:padding="2dp"
             android:text="EXPLICIT"
             android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textColor="@color/colorPrimary"
+            android:textColor="#F5F5F5"
             android:textSize="10sp"
-            android:textStyle="normal|bold"/>
+            android:textStyle="normal|bold" />
 
         <TextView
             android:id="@+id/entityTitle"
@@ -79,4 +71,4 @@
             android:textColor="@color/colorPrimary"
             android:textSize="14sp"/>
     </RelativeLayout>
-</android.support.v7.widget.CardView>
+</androidx.cardview.widget.CardView>

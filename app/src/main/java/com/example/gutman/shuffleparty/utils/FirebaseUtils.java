@@ -1,23 +1,11 @@
 package com.example.gutman.shuffleparty.utils;
 
-import android.support.annotation.NonNull;
-import android.support.test.espresso.core.internal.deps.guava.base.Joiner;
-
 import com.example.gutman.shuffleparty.data.Room;
 import com.example.gutman.shuffleparty.data.UserPrivateExtension;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Track;
-import kaaes.spotify.webapi.android.models.UserPrivate;
 
 public class FirebaseUtils
 {

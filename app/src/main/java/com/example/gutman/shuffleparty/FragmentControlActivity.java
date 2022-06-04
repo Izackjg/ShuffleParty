@@ -1,27 +1,27 @@
 package com.example.gutman.shuffleparty;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 
 import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
-import com.google.firebase.FirebaseApp;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 // TODO: DELETE USER WHEN HE HITS EXIT ROOM BUTTON. IF ADMIN PROMT FOR LEAVE ONLY OR DELETE ROOM.
 
@@ -30,11 +30,9 @@ public class FragmentControlActivity extends AppCompatActivity
 	private DatabaseReference userRef;
 
 	private Context main;
-	private BottomNavigationView navView;
 
 	private boolean admin = false;
 	private String roomIdentifier;
-	private String uri;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -54,29 +52,28 @@ public class FragmentControlActivity extends AppCompatActivity
 		}
 
 		// Find the BottomNavView and add its item selected listener.
-		navView = findViewById(R.id.navigation);
+		BottomNavigationView navView = findViewById(R.id.navigation);
 		navView.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener);
 
 		roomIdentifier = getIntent().getStringExtra("ident");
 		userRef = FirebaseUtils.getUsersReference(roomIdentifier);
 		userRef.addListenerForSingleValueEvent(getAdminValueListener);
 
-		uri = CredentialsHandler.getUserUri(this);
-
 		Bundle b = new Bundle();
 		b.putString("ident", roomIdentifier);
 
 		// Start the HomeFragment first always.
 		// This will always execute because it is in the onCreate method.
-		Fragment homeFragment = new HomeFragment();
+		Fragment homeFragment = new Fragment();
 		homeFragment.setArguments(b);
 		navView.setSelectedItemId(R.id.navigation_home);
 		addFragment(homeFragment);
 	}
 
-	private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener =
+	private final BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener =
 			new BottomNavigationView.OnNavigationItemSelectedListener()
 			{
+				@SuppressLint("NonConstantResourceId")
 				@Override
 				public boolean onNavigationItemSelected(@NonNull MenuItem item)
 				{
@@ -99,10 +96,10 @@ public class FragmentControlActivity extends AppCompatActivity
 							return true;
 
 						case R.id.navigation_search:
-							if (current instanceof SearchFragment)
+							if (current instanceof SearchTracksFragment)
 								return false;
 
-							fragment = new SearchFragment();
+							fragment = new SearchTracksFragment();
 							fragment.setArguments(b);
 							loadFragment(fragment);
 							return true;
@@ -198,7 +195,7 @@ public class FragmentControlActivity extends AppCompatActivity
 		}).show();
 	}
 
-	private ValueEventListener getAdminValueListener = new ValueEventListener()
+	private final ValueEventListener getAdminValueListener = new ValueEventListener()
 	{
 		@Override
 		public void onDataChange(@NonNull DataSnapshot dataSnapshot)

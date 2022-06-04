@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -13,26 +11,21 @@ import android.widget.Button;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyConstants;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
 import java.util.concurrent.TimeUnit;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 public class LoginActivity extends AppCompatActivity
 {
 	private Context main;
 	private static final int REQUEST_CODE = 1337;
 	private static final String REDIRECT_URI = "http://example.com/callback/";
-	private static String ApiToken;
-
-	private Button btnSpotifyLogin;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -41,7 +34,7 @@ public class LoginActivity extends AppCompatActivity
 		setContentView(R.layout.activity_login);
 
 		main = this;
-		btnSpotifyLogin = findViewById(R.id.btnSpotifyLogin);
+		Button btnSpotifyLogin = findViewById(R.id.btnSpotifyLogin);
 
 		if (CredentialsHandler.getToken(this) != null)
 		{
@@ -63,14 +56,13 @@ public class LoginActivity extends AppCompatActivity
 			switch (response.getType())
 			{
 				case TOKEN:
-					ApiToken = response.getAccessToken();
-					CredentialsHandler.setToken(this, ApiToken, 1, TimeUnit.HOURS);
+					String apiToken = response.getAccessToken();
+					CredentialsHandler.setToken(this, apiToken, 1, TimeUnit.HOURS);
 					Intent intent = new Intent(this, RoomCreationActivity.class);
 					startActivity(intent);
 					finish();
 					break;
 				case CODE:
-					break;
 				case ERROR:
 					break;
 				default:
@@ -94,8 +86,8 @@ public class LoginActivity extends AppCompatActivity
 		String userUri = CredentialsHandler.getUserUri(this);
 		DatabaseReference ref = FirebaseUtils.ROOM_REF;
 		Query contains = ref.orderByChild("users").equalTo(userUri);
-		Log.d(main.getClass().getSimpleName(), "LOGGING CONTAINS VALUE: " + contains == null ? "T" : "F");
-		return contains == null;
+		Log.d(main.getClass().getSimpleName(), "F");
+		return false;
 	}
 }
 

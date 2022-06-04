@@ -1,14 +1,9 @@
 package com.example.gutman.shuffleparty;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,14 +14,12 @@ import com.example.gutman.shuffleparty.data.UserPrivateExtension;
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
-import com.google.firebase.FirebaseApiNotAvailableException;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.spotify.android.appremote.internal.SpotifyAppRemoteIsConnectedRule;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -34,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.UserPrivate;
 import retrofit.Callback;
@@ -53,10 +48,7 @@ public class RoomCreationActivity extends AppCompatActivity
 	private UserPrivate userPrivate;
 	private UserPrivateExtension extension;
 
-	private SpotifyService spotify;
-
 	private boolean admin = false;
-	private String apiToken = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -73,7 +65,7 @@ public class RoomCreationActivity extends AppCompatActivity
 		FirebaseApp.initializeApp(this);
 
 		// Check if API Token has expired.
-		apiToken = CredentialsHandler.getToken(this);
+		String apiToken = CredentialsHandler.getToken(this);
 		if (apiToken == null)
 		{
 			Intent intent = new Intent(this, LoginActivity.class);
@@ -82,7 +74,7 @@ public class RoomCreationActivity extends AppCompatActivity
 		}
 
 		// Get the instance of Spotify using the retrieved API Token from SharedPref.
-		spotify = SpotifyUtils.getInstance(apiToken);
+		SpotifyService spotify = SpotifyUtils.getInstance(apiToken);
 
 		// Get all the controls on the view.
 		btnCreateRoom = findViewById(R.id.btnCreateRoom);
@@ -119,7 +111,7 @@ public class RoomCreationActivity extends AppCompatActivity
 		if (userPrivate == null)
 			return;
 
-		DateFormat df = new SimpleDateFormat("EEE, MMM d, yyyy HH:mm");
+		@SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("EEE, MMM d, yyyy HH:mm");
 		String dateFormatted = df.format(Calendar.getInstance().getTime());
 
 		// Create a new UserExtension that contains it's permissions.
@@ -134,9 +126,9 @@ public class RoomCreationActivity extends AppCompatActivity
 		// Add that room the to database.
 		FirebaseUtils.addRoomToDatabase(r, dateFormatted);
 
-		// Start the FragmentControlActivity, passing on the room identifer.
-		// This allows us to pass the room identifer to all the fragments.
-		// Having the room identifer access allows us to get/add items from and to the database.
+		// Start the FragmentControlActivity, passing on the room identifier.
+		// This allows us to pass the room identifier to all the fragments.
+		// Having the room identifier access allows us to get/add items from and to the database.
 		startFragmentActivityHolder(r.getIdentifier());
 	}
 
@@ -173,13 +165,10 @@ public class RoomCreationActivity extends AppCompatActivity
 				// If the query is null, then the user is already existing in the room.
 				// Meaning we don't need to add him to the user ref of the database.
 				// This fixes the issue of having copies of the same user in the Database - as well in the UserFragment.
-				if (userExistsQuery == null)
-					// Add the user to the specific room.
-					FirebaseUtils.addUserToRoom(roomCodeText, extension);
 
-				// Start the FragmentControlActivity, passing on the room identifer.
-				// This allows us to pass the room identifer to all the fragments.
-				// Having the room identifer access allows us to get/add items from and to the database.
+				// Start the FragmentControlActivity, passing on the room identifier.
+				// This allows us to pass the room identifier to all the fragments.
+				// Having the room identifier access allows us to get/add items from and to the database.
 				startFragmentActivityHolder(roomCodeText);
 			}
 
@@ -192,10 +181,10 @@ public class RoomCreationActivity extends AppCompatActivity
 
 	}
 
-	private void startFragmentActivityHolder(String identifer)
+	private void startFragmentActivityHolder(String identifier)
 	{
 		Intent i = new Intent(main, FragmentControlActivity.class);
-		i.putExtra("ident", identifer);
+		i.putExtra("ident", identifier);
 		startActivity(i);
 	}
 }

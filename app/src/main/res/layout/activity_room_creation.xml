@@ -7,6 +7,7 @@
 
     <EditText
         android:id="@+id/etRoomCode"
+        android:text="3388IL"
         android:layout_width="190dp"
         android:layout_height="70dp"
         android:layout_centerHorizontal="true"

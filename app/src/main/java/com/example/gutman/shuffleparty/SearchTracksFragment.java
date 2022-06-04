@@ -5,40 +5,32 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
 
 import com.example.gutman.shuffleparty.utils.CredentialsHandler;
 import com.example.gutman.shuffleparty.utils.FirebaseUtils;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
-import com.spotify.android.appremote.api.ConnectionParams;
-import com.spotify.android.appremote.api.Connector;
-import com.spotify.android.appremote.api.SpotifyAppRemote;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.FeaturedPlaylists;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.TracksPager;
-import retrofit.Callback;
-import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class SearchFragment extends Fragment
+public class SearchTracksFragment extends Fragment
 {
 	private Context main;
 	private Activity mainActivity;
@@ -53,7 +45,7 @@ public class SearchFragment extends Fragment
 	private RecyclerView searchResults;
 	private SpotifyTrackAdapter adapter;
 
-	public SearchFragment()
+	public SearchTracksFragment()
 	{
 		// Required empty public constructor
 	}
@@ -95,7 +87,7 @@ public class SearchFragment extends Fragment
 		main = container.getContext();
 		mainActivity = getActivity();
 
-		View view = inflater.inflate(R.layout.fragment_search, container, false);
+		View view = inflater.inflate(R.layout.fragment_search_tracks, container, false);
 
 		apiToken = CredentialsHandler.getToken(mainActivity);
 		if (apiToken == null)
@@ -123,11 +115,11 @@ public class SearchFragment extends Fragment
 			@Override
 			public boolean onQueryTextSubmit(String query)
 			{
-//				if (adapter.getItemCount() != 0)
-//				{
-//					adapter.clearData();
-//					searchResults.setAdapter(adapter);
-//				}
+				if (adapter.getItemCount() != 0)
+				{
+					adapter.clearData();
+					searchResults.setAdapter(adapter);
+				}
 
 				if (query.isEmpty())
 					return false;

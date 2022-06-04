@@ -1,8 +1,6 @@
 package com.example.gutman.shuffleparty;
 
 import android.content.Context;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,11 +11,10 @@ import com.example.gutman.shuffleparty.utils.SpotifyConstants;
 import com.example.gutman.shuffleparty.utils.SpotifyUtils;
 import com.squareup.picasso.Picasso;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.recyclerview.widget.RecyclerView;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 
@@ -33,12 +30,9 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	private TrackSelectedListener itemSelectedListener;
 
 	private Track recentlyDeletedItem;
-	private int recentlyDeletedPos;
 
 	public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
 	{
-		private CardView rootCardView;
-		private final TextView time;
 		private final TextView title;
 		private final TextView artist;
 		private final TextView explicit;
@@ -48,8 +42,6 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 		public ViewHolder(View itemView)
 		{
 			super(itemView);
-			rootCardView = itemView.findViewById(R.id.itemRootCardView);
-			time = itemView.findViewById(R.id.entityTime);
 			title = itemView.findViewById(R.id.entityTitle);
 			artist = itemView.findViewById(R.id.entityArtist);
 			image = itemView.findViewById(R.id.entityImage);
@@ -63,7 +55,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 			if (itemSelectedListener == null)
 				return;
 
-			index = getAdapterPosition();
+			index = getBindingAdapterPosition();
 			notifyItemChanged(index);
 			itemSelectedListener.onItemSelected(v, items.get(index), index);
 		}
@@ -84,7 +76,7 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
 	{
-		View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.spotify_list_item, parent, false);
+		View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.spotify_track_item, parent, false);
 		return new ViewHolder(v);
 	}
 
@@ -101,18 +93,6 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 			holder.explicit.setVisibility(View.GONE);
 
 		holder.artist.setText(SpotifyUtils.toStringFromArtists(item) + SpotifyConstants.SEPERATOR + item.album.name);
-
-
-		int timeMs = (int)item.duration_ms;
-		int mins = (timeMs / 1000) / 60;
-		int secs = (timeMs / 1000) % 60;
-		String timeString = "";
-		if (secs < 10)
-			 timeString = String.format("%d:0%d", mins, secs);
-		else
-			timeString = String.format("%d:%d", mins, secs);
-
-		holder.time.setText(timeString);
 
 		if (item.album.images.get(0) == null)
 			return;
@@ -135,7 +115,6 @@ class SpotifyTrackAdapter extends RecyclerView.Adapter<SpotifyTrackAdapter.ViewH
 	public void deleteItem(int pos)
 	{
 		recentlyDeletedItem = items.get(pos);
-		recentlyDeletedPos = pos;
 		items.remove(pos);
 		notifyItemRemoved(pos);
 	}
